@@ -246,6 +246,44 @@
         html.dark-mode .bg-white {
             background-color: var(--bg-secondary) !important;
         }
+
+        /* Dark Mode for SweetAlert2 */
+        html.dark-mode .swal2-popup {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        html.dark-mode .swal2-title {
+            color: var(--text-primary) !important;
+        }
+
+        html.dark-mode .swal2-html-container {
+            color: var(--text-primary) !important;
+        }
+
+        html.dark-mode .swal2-input,
+        html.dark-mode .swal2-textarea {
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+
+        html.dark-mode .swal2-input::placeholder,
+        html.dark-mode .swal2-textarea::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        html.dark-mode table {
+            color: var(--text-primary) !important;
+        }
+
+        html.dark-mode table tr {
+            border-color: var(--border-color) !important;
+        }
+
+        html.dark-mode strong {
+            color: var(--text-primary) !important;
+        }
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
@@ -1000,17 +1038,17 @@
             Swal.fire({
                 title: `Factura #${inv.number}`,
                 html: `
-                    <div class="text-left" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-left" style="max-height: 400px; overflow-y: auto; color: var(--text-primary);">
                         <div style="margin-bottom: 15px;">
                             <p><strong>Cliente:</strong> ${inv.client}</p>
                             <p><strong>Dirección:</strong> ${inv.address || 'N/A'}</p>
                             <p><strong>Fecha:</strong> ${inv.date}</p>
                             <p><strong>Estado:</strong> ${getStatusText(inv.status)}</p>
                         </div>
-                        <div style="margin-bottom: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
+                        <div style="margin-bottom: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
                             ${itemsHtml}
                         </div>
-                        <div style="text-align: right; border-top: 2px solid #333; padding-top: 10px; font-size: 18px; font-weight: bold;">
+                        <div style="text-align: right; border-top: 2px solid var(--border-color); padding-top: 10px; font-size: 18px; font-weight: bold;">
                             <strong>Total: $${inv.amount.toFixed(2)}</strong>
                         </div>
                     </div>
