@@ -166,6 +166,26 @@
             transform: scale(1) rotate(0deg);
         }
 
+        /* Estilo para el botón Nueva Factura en modo oscuro */
+        #btnNewInvoice {
+            background-color: #22c55e !important;
+            color: white !important;
+        }
+
+        #btnNewInvoice:hover {
+            background-color: #16a34a !important;
+        }
+
+        html.dark-mode #btnNewInvoice {
+            background-color: #22c55e !important;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+        }
+
+        html.dark-mode #btnNewInvoice:hover {
+            background-color: #16a34a !important;
+            box-shadow: 0 0 16px rgba(34, 197, 94, 0.6);
+        }
+
         .icon-sun {
             opacity: 1;
             transform: scale(1) rotate(0deg);
@@ -309,17 +329,17 @@
     </button>
 
     <!-- Navbar -->
-    <nav class="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-white sticky top-0 z-50">
+    <nav class="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-white sticky top-0 z-50" style="border-color: var(--border-color); background-color: var(--nav-bg);">
         <div class="flex items-center gap-6">
-            <span class="text-lg font-semibold text-gray-900">Facturación Electrónica</span>
-            <button id="btnNewInvoice" onclick="showInvoiceForm()" class="bg-gray-800 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors">
+            <span class="text-lg font-semibold" style="color: var(--text-primary);">Facturación Electrónica</span>
+            <button id="btnNewInvoice" onclick="showInvoiceForm()" class="bg-gray-800 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors" style="background-color: #22c55e;">            
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nueva Factura
             </button>
         </div>
         <div class="flex items-center gap-6">
-            <span class="text-sm text-gray-500">admin@gmail.com</span>
-            <button onclick="logout()" class="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
+            <span class="text-sm" style="color: var(--text-secondary);">admin@gmail.com</span>
+            <button onclick="logout()" class="text-sm flex items-center gap-2 transition-colors" style="color: var(--text-secondary); hover: var(--text-primary);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Logout
             </button>
