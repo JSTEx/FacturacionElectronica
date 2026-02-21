@@ -27,23 +27,34 @@
     </div>
 
     <script>
-        // Inicializar usuarios si no existen
-        function ensureDefaultAdmin() {
+        // Helper: SHA-256 hash to hex (compatible con admin.html)
+        async function hashPassword(pw) {
+            const enc = new TextEncoder();
+            const data = enc.encode(pw);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            const arr = Array.from(new Uint8Array(hash));
+            return arr.map(b => b.toString(16).padStart(2,'0')).join('');
+        }
+
+        // Inicializar usuarios si no existen (guarda contraseña por defecto hasheada)
+        async function ensureDefaultAdmin() {
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (!users.find(u => u.role === 'admin')) {
-                users.push({ email: 'admin@admin.com', password: 'admin123', role: 'admin' });
+                const hashed = await hashPassword('admin123');
+                users.push({ email: 'admin@admin.com', password: hashed, role: 'admin' });
                 localStorage.setItem('users', JSON.stringify(users));
             }
         }
 
         ensureDefaultAdmin();
 
-        document.getElementById('loginForm').addEventListener('submit', function(e){
+        document.getElementById('loginForm').addEventListener('submit', async function(e){
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const match = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+            const hashedInput = await hashPassword(password);
+            const match = users.find(u => u.email.toLowerCase() === email.toLowerCase() && (u.password === hashedInput || u.password === password));
             if (match) {
                 localStorage.setItem('currentUser', JSON.stringify({ email: match.email, role: match.role }));
                 // Si es admin, abrir panel de administración (CRUD). Si es otro rol, abrir la app principal.

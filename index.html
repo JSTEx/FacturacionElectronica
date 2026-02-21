@@ -496,7 +496,7 @@
             </button>
         </div>
         <div class="flex items-center gap-6">
-            <span class="text-sm" style="color: var(--text-secondary);">admin@gmail.com</span>
+            <span id="currentUserEmail" class="text-sm" style="color: var(--text-secondary);"></span>
             <button onclick="logout()" class="text-sm flex items-center gap-2 transition-colors" style="color: var(--text-secondary); hover: var(--text-primary);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Logout
@@ -1120,14 +1120,16 @@
                     
                     <div class="flex justify-between items-end">
                         <span class="text-2xl font-bold text-gray-900">$${inv.amount.toFixed(2)}</span>
-                        <div class="flex items-center gap-6">
-                        <span id="currentUserEmail" class="text-sm" style="color: var(--text-secondary);"></span>
-                        <button onclick="logout()" class="text-sm flex items-center gap-2 transition-colors" style="color: var(--text-secondary); hover: var(--text-primary);">
-                        </div>
+                        <div class="flex items-center gap-6"></div>
                     </div>
                 </div>
                 `;
             }).join('');
+        }
+
+        function logout(){
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
         }
 
         function renderPaginationButtons(totalPages) {
@@ -1600,10 +1602,7 @@
                     </div>
                     <div class="flex justify-between items-end">
                         <span class="text-2xl font-bold text-gray-900">$${inv.amount.toFixed(2)}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-400">${formatDate(inv.date)}</span>
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                        </div>
+                        <div class="flex items-center gap-6"></div>
                     </div>
                 </div>
                 `;
