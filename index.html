@@ -1037,7 +1037,7 @@
             document.getElementById('totalAmount').textContent = total.toFixed(2);
         }
 
-        function handleSubmit(e) {
+        async function handleSubmit(e) {
             e.preventDefault();
             if (!ensureCanCreateInvoices()) return;
             
@@ -1132,15 +1132,15 @@
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Sí, continuar',
                     cancelButtonText: 'No, corregir'
-                }).then((result) => {
+                }).then(async (result) => {
                     if (result.isConfirmed) {
-                        saveInvoice();
+                        await saveInvoice();
                     }
                 });
                 return;
             }
             
-            saveInvoice();
+            await saveInvoice();
         }
 
         async function saveInvoice() {
@@ -1336,8 +1336,10 @@
         }
 
         async function logout(){
+            const darkModeSetting = localStorage.getItem('darkMode'); // Guardar configuración
             await window.firebaseAuth.signOut();
-            localStorage.removeItem('currentUser');
+            localStorage.clear(); // Limpiar todo
+            if (darkModeSetting) localStorage.setItem('darkMode', darkModeSetting); // Restaurar
             window.location.href = 'login.html';
         }
 
@@ -1910,9 +1912,12 @@
                         timer: 1500,
                         showConfirmButton: false
                     });
-                    // Cerrar sesión en Firebase Auth y limpiar localStorage
+                    // Guardar configuración de modo oscuro antes de limpiar
+                    const darkModeSetting = localStorage.getItem('darkMode');
+                    // Cerrar sesión en Firebase Auth
                     await window.firebaseAuth.signOut();
-                    localStorage.removeItem('currentUser');
+                    localStorage.clear(); // Limpiar todo
+                    if (darkModeSetting) localStorage.setItem('darkMode', darkModeSetting); // Restaurar
                     setTimeout(() => { window.location.href = 'login.html'; }, 600);
                 }
             });

@@ -669,8 +669,10 @@
 
         // Logout helper
         async function logout(){ 
+            const darkModeSetting = localStorage.getItem('darkMode'); // Guardar configuración
             await window.firebaseAuth.signOut();
-            localStorage.removeItem('currentUser'); 
+            localStorage.clear(); // Limpiar todo
+            if (darkModeSetting) localStorage.setItem('darkMode', darkModeSetting); // Restaurar
             window.location.href='login.html'; 
         }
 
