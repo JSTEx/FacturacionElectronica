@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "email": "admin@facturacion.com",
+      "role": "admin"
+    }
+  ],
+  "invoices": [],
+  "adminAudit": []
+}
