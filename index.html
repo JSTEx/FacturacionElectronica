@@ -1042,7 +1042,7 @@
         }
 
         function renderInvoiceCard(inv, canDelete, withTitle = false) {
-            const statusClass = getStatusClass(inv.status);
+            const statusChip = getStatusPdfChipData(inv.status);
             const statusText = getStatusText(inv.status);
             const canViewAmount = canSeeInvoiceAmount(inv);
             const amountText = canViewAmount ? `$${inv.amount.toFixed(2)}` : 'Monto oculto';
@@ -1173,7 +1173,7 @@
             doc.setTextColor(statusChip.color);
             doc.setFont('helvetica', 'bold');
             doc.text(statusChip.text, left + 50, y);
-            doc.setTextColor('#111111');
+            doc.setTextColor(17, 17, 17);
 
             const bodyRows = (inv.items || []).map(item => {
                 const price = canViewAmount ? `$${Number(item.precio || 0).toFixed(2)}` : 'Oculto';
@@ -1362,7 +1362,17 @@
                     previewInvoicePdf(inv, canViewAmount);
                 }
                 if (result.dismiss === Swal.DismissReason.cancel) {
-                    downloadInvoicePdf(inv, canViewAmount);
+                    try {
+                        downloadInvoicePdf(inv, canViewAmount);
+                    } catch (error) {
+                        console.error('Error descargando PDF:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No se pudo descargar',
+                            text: 'Ocurrio un error al generar el PDF.',
+                            confirmButtonColor: '#1a1a1a'
+                        });
+                    }
                 }
             });
         }
