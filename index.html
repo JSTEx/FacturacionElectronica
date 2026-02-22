@@ -943,10 +943,27 @@
             }
         }
 
-        async function migrateInvoicesIfArray(rawInvoices) {
-            if (!Array.isArray(rawInvoices)) return rawInvoices;
+        function isLegacyInvoicesObject(rawInvoices) {
+            if (!rawInvoices || typeof rawInvoices !== 'object' || Array.isArray(rawInvoices)) return false;
+            const keys = Object.keys(rawInvoices);
+            if (keys.length === 0) return false;
+            const allNumericKeys = keys.every(key => String(parseInt(key, 10)) === key);
+            if (!allNumericKeys) return false;
+            return true;
+        }
+
+        async function migrateInvoicesIfLegacy(rawInvoices) {
+            let legacyList = null;
+            if (Array.isArray(rawInvoices)) {
+                legacyList = rawInvoices.filter(Boolean);
+            } else if (isLegacyInvoicesObject(rawInvoices)) {
+                legacyList = Object.values(rawInvoices).filter(Boolean);
+            }
+
+            if (!legacyList) return rawInvoices;
+
             const migrated = {};
-            rawInvoices.filter(Boolean).forEach((inv) => {
+            legacyList.forEach((inv) => {
                 if (inv && inv.id) {
                     migrated[String(inv.id)] = inv;
                 }
@@ -965,9 +982,7 @@
             for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
                     let raw = await readInvoicesStrict();
-                    if (Array.isArray(raw)) {
-                        raw = await migrateInvoicesIfArray(raw);
-                    }
+                    raw = await migrateInvoicesIfLegacy(raw);
                     return normalizeInvoices(raw);
                 } catch (error) {
                     console.error(`Error cargando facturas (intento ${attempt}/${maxAttempts}):`, error);
