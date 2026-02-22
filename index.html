@@ -738,6 +738,12 @@
             return [];
         }
 
+        function normalizeInvoices(rawInvoices) {
+            if (Array.isArray(rawInvoices)) return rawInvoices.filter(Boolean);
+            if (rawInvoices && typeof rawInvoices === 'object') return Object.values(rawInvoices);
+            return [];
+        }
+
         async function waitForFirebaseReady(maxAttempts = 100) {
             for (let attempt = 0; attempt < maxAttempts; attempt++) {
                 if (window.firebaseAuth && window.firebaseAuthStateChanged && window.firebaseDB) {
@@ -911,11 +917,14 @@
         // Funciones de carga y guardado
         async function loadInvoices() {
             const data = await getFirebaseData('invoices');
-            return data || [];
+            return normalizeInvoices(data);
         }
 
         async function saveInvoices(invoicesList) {
-            await setFirebaseData('invoices', invoicesList);
+            const ok = await setFirebaseData('invoices', invoicesList);
+            if (!ok) {
+                throw new Error('No se pudo guardar en Firebase');
+            }
         }
 
         let invoices = [];
@@ -932,7 +941,7 @@
             // Escuchar cambios en tiempo real
             const invoicesRef = window.firebaseRef(window.firebaseDB, 'invoices');
             window.firebaseOnValue(invoicesRef, (snapshot) => {
-                invoices = snapshot.val() || [];
+                invoices = normalizeInvoices(snapshot.val());
                 render();
             });
         })();
@@ -1218,7 +1227,8 @@
             if (editingId) {
                 const invoiceIndex = invoices.findIndex(inv => inv.id === editingId);
                 if (invoiceIndex !== -1) {
-                    invoices[invoiceIndex] = {
+                    const updatedInvoices = [...invoices];
+                    updatedInvoices[invoiceIndex] = {
                         ...invoices[invoiceIndex],
                         number: document.getElementById('numero').value,
                         client: document.getElementById('cliente').value,
@@ -1229,18 +1239,29 @@
                         items: items,
                         createdByEmail: invoices[invoiceIndex].createdByEmail || (currentUser ? currentUser.email : null)
                     };
-                    await saveInvoices(invoices);
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Factura actualizada!',
-                        text: `Factura #${document.getElementById('numero').value} actualizada exitosamente`,
-                        confirmButtonColor: '#1a1a1a',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => {
-                        resetForm();
-                        updateInvoiceList();
-                    });
+                    try {
+                        await saveInvoices(updatedInvoices);
+                        invoices = updatedInvoices;
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Factura actualizada!',
+                            text: `Factura #${document.getElementById('numero').value} actualizada exitosamente`,
+                            confirmButtonColor: '#1a1a1a',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            resetForm();
+                            updateInvoiceList();
+                        });
+                    } catch (error) {
+                        console.error('Error guardando factura:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No se pudo guardar',
+                            text: 'Firebase rechazó el guardado. Verifica sesión y reglas de seguridad.',
+                            confirmButtonColor: '#1a1a1a'
+                        });
+                    }
                 }
             } else {
                 const newInvoice = {
@@ -1254,21 +1275,33 @@
                     items: items,
                     createdByEmail: currentUser ? currentUser.email : null
                 };
-                
-                invoices.push(newInvoice);
-                await saveInvoices(invoices);
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Factura creada!',
-                    text: `Factura #${newInvoice.number} creada exitosamente`,
-                    confirmButtonColor: '#1a1a1a',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    resetForm();
-                    updateInvoiceList();
-                });
+
+                const updatedInvoices = [...invoices, newInvoice];
+
+                try {
+                    await saveInvoices(updatedInvoices);
+                    invoices = updatedInvoices;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Factura creada!',
+                        text: `Factura #${newInvoice.number} creada exitosamente`,
+                        confirmButtonColor: '#1a1a1a',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        resetForm();
+                        updateInvoiceList();
+                    });
+                } catch (error) {
+                    console.error('Error creando factura:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se pudo crear la factura',
+                        text: 'Firebase rechazó el guardado. Verifica sesión y reglas de seguridad.',
+                        confirmButtonColor: '#1a1a1a'
+                    });
+                }
             }
         }
 
@@ -1832,17 +1865,28 @@
                 cancelButtonText: 'Cancelar'
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    invoices = invoices.filter(inv => inv.id !== id);
-                    await saveInvoices(invoices);
-                    updateInvoiceList();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Eliminada',
-                        text: 'La factura ha sido eliminada',
-                        confirmButtonColor: '#1a1a1a',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                    const updatedInvoices = invoices.filter(inv => inv.id !== id);
+                    try {
+                        await saveInvoices(updatedInvoices);
+                        invoices = updatedInvoices;
+                        updateInvoiceList();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminada',
+                            text: 'La factura ha sido eliminada',
+                            confirmButtonColor: '#1a1a1a',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } catch (error) {
+                        console.error('Error eliminando factura:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No se pudo eliminar',
+                            text: 'Firebase rechazó la operación. Verifica sesión y reglas de seguridad.',
+                            confirmButtonColor: '#1a1a1a'
+                        });
+                    }
                 }
             });
         }
