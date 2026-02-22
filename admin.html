@@ -309,6 +309,84 @@
         @keyframes appSpin {
             to { transform: rotate(360deg); }
         }
+
+        @media (max-width: 1024px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            nav > div {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            main {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            nav {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .back-invoices-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #userForm {
+                grid-template-columns: 1fr;
+            }
+
+            #userForm .col-span-12 {
+                grid-column: span 1 / span 1;
+            }
+
+            .soft-btn,
+            #exportBtn,
+            #importBtn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .flex.justify-between.items-center.mt-4 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            nav {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            h1.text-2xl {
+                font-size: 1.25rem;
+            }
+
+            .users-table thead {
+                display: none;
+            }
+
+            .users-table tbody tr {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 6px;
+                padding: 10px 0;
+            }
+
+            .users-table tbody td {
+                text-align: left !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
