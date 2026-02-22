@@ -25,8 +25,10 @@
         };
         
         const app = initializeApp(firebaseConfig);
+        const userProvisionApp = initializeApp(firebaseConfig, 'userProvisionApp');
         const database = getDatabase(app);
         const auth = getAuth(app);
+        const userProvisionAuth = getAuth(userProvisionApp);
         
         window.firebaseDB = database;
         window.firebaseAuth = auth;
@@ -37,6 +39,7 @@
         window.firebaseOnValue = onValue;
         window.firebaseAuthStateChanged = onAuthStateChanged;
         window.firebaseCreateUser = createUserWithEmailAndPassword;
+        window.firebaseProvisionAuth = userProvisionAuth;
     </script>
     
     <style>
@@ -549,8 +552,10 @@
             }
             
             try {
-                // Crear usuario en Firebase Authentication
-                await window.firebaseCreateUser(window.firebaseAuth, email, pass);
+                // Crear usuario en Firebase Authentication usando auth secundario
+                // para no alterar la sesión actual del administrador.
+                await window.firebaseCreateUser(window.firebaseProvisionAuth, email, pass);
+                await window.firebaseProvisionAuth.signOut();
                 
                 // Guardar usuario en la base de datos (sin contraseña, Firebase Auth la maneja)
                 users.push({ email, role });
