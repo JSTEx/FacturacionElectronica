@@ -1290,15 +1290,9 @@
                 </html>
             `;
 
-            try {
-                const encodedHtml = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-                previewWindow.location.replace(encodedHtml);
-            } catch (error) {
-                previewWindow.document.open();
-                previewWindow.document.write(html);
-                previewWindow.document.close();
-                console.error('Error mostrando previsualizacion:', error);
-            }
+            previewWindow.document.open();
+            previewWindow.document.write(html);
+            previewWindow.document.close();
         }
 
         function viewInvoice(id) {
