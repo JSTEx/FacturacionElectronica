@@ -192,16 +192,29 @@ body.pdf-preview .pdf-meta {
     font-size: 16px;
 }
 
+body.pdf-preview .pdf-status-row {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.pdf-preview .pdf-status-label {
+    font-weight: 800;
+}
+
 body.pdf-preview .pdf-meta strong {
     color: #111827;
 }
 
 body.pdf-preview .pdf-chip {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
+    border: 1px solid transparent;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 
 body.pdf-preview .pdf-table-wrap {
@@ -266,12 +279,16 @@ body.pdf-preview .pdf-total-value {
     line-height: 1;
 }
 
-body.pdf-preview .status-dispatch { background-color: #dbeafe; color: #1e40af; }
-body.pdf-preview .status-abono { background-color: #dcfce7; color: #166534; }
-body.pdf-preview .status-saldo { background-color: #ede9fe; color: #5b21b6; }
-body.pdf-preview .status-paid { background-color: #d1fae5; color: #065f46; }
-body.pdf-preview .status-late { background-color: #fee2e2; color: #991b1b; }
-body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; }
+body.pdf-preview .status-dispatch { background-color: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+body.pdf-preview .status-abono { background-color: #dcfce7; color: #166534; border-color: #86efac; }
+body.pdf-preview .status-saldo { background-color: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+body.pdf-preview .status-paid { background-color: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+body.pdf-preview .status-late { background-color: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
+
+@page {
+    margin: 10mm;
+}
 
 @media print {
     body.pdf-preview {
