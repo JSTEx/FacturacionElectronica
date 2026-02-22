@@ -1344,15 +1344,8 @@
         }
 
         function generateInvoiceNumber() {
-            // Buscar el máximo número existente y sumar 1
-            let maxNumber = 0;
-            invoices.forEach(inv => {
-                const num = parseInt(inv.number) || 0;
-                if (num > maxNumber) {
-                    maxNumber = num;
-                }
-            });
-            const nextNumber = maxNumber + 1;
+            // El número de factura es basado en la cantidad actual de facturas + 1
+            const nextNumber = invoices.length + 1;
             document.getElementById('numero').value = nextNumber;
         }
 
