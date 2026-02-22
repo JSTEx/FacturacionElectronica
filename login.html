@@ -219,23 +219,12 @@
         }
 
         // Inicializar usuario admin por defecto en Firebase Auth y Database
-        async function ensureDefaultAdmin() {
-            const users = normalizeUsers(await getFirebaseData('users'));
-            if (!users.find(u => u.role === 'admin')) {
-                // El usuario admin se creará manualmente desde admin.html
-                // o puedes crearlo directamente en Firebase Console
-                console.log('No hay usuario admin configurado. Créalo desde Firebase Console o admin.html');
-            }
-        }
-
         async function initAuthFlow() {
             const ready = await waitForFirebaseReady();
             if (!ready) {
                 alert('Firebase no se pudo inicializar. Recarga la página.');
                 return;
             }
-
-            await ensureDefaultAdmin();
 
             let isLoggingIn = false;
 
