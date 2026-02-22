@@ -1212,17 +1212,6 @@
         }
 
         function previewInvoicePdf(inv, canViewAmount) {
-            const previewWindow = window.open('', '_blank');
-            if (!previewWindow) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Ventana bloqueada',
-                    text: 'Permite ventanas emergentes para previsualizar el PDF.',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
-            }
-
             const statusClass = getStatusClass(inv.status);
             const statusText = getStatusText(inv.status);
             const addressText = canViewAmount ? (inv.address || 'N/A') : 'Oculta';
@@ -1292,12 +1281,29 @@
             `;
 
             try {
-                const encodedHtml = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-                previewWindow.location.replace(encodedHtml);
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                const previewUrl = URL.createObjectURL(blob);
+                const opened = window.open(previewUrl, '_blank');
+
+                if (!opened) {
+                    URL.revokeObjectURL(previewUrl);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Ventana bloqueada',
+                        text: 'Permite ventanas emergentes para previsualizar el PDF.',
+                        confirmButtonColor: '#1a1a1a'
+                    });
+                    return;
+                }
+
+                setTimeout(() => URL.revokeObjectURL(previewUrl), 60000);
             } catch (error) {
-                previewWindow.document.open();
-                previewWindow.document.write(html);
-                previewWindow.document.close();
+                const fallbackWindow = window.open('', '_blank');
+                if (fallbackWindow) {
+                    fallbackWindow.document.open();
+                    fallbackWindow.document.write(html);
+                    fallbackWindow.document.close();
+                }
                 console.error('Error mostrando previsualizacion:', error);
             }
         }
