@@ -155,6 +155,16 @@
             color: #991b1b;
         }
 
+        .status-dispatch {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-saldo {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+
         #invoiceFormView input[readonly] {
             background-color: var(--bg-primary);
             color: var(--text-secondary);
@@ -193,6 +203,16 @@
         html.dark-mode .status-vencida {
             background-color: #7f1d1d;
             color: #fca5a5;
+        }
+
+        html.dark-mode .status-dispatch {
+            background-color: #1e3a8a;
+            color: #bfdbfe;
+        }
+
+        html.dark-mode .status-saldo {
+            background-color: #4c1d95;
+            color: #ddd6fe;
         }
 
         /* Dark Mode Toggle Button (inline in navbar) */
@@ -792,6 +812,9 @@
                 </div>
                 <select id="filterSelect" class="h-10 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-900 bg-white min-w-[180px] cursor-pointer">
                     <option value="all">Todas las facturas</option>
+                    <option value="dispatch">Despacho</option>
+                    <option value="abono">Abono</option>
+                    <option value="saldo_actual">Sado actual</option>
                     <option value="paid">Pagadas</option>
                     <option value="pending">Pendientes</option>
                     <option value="late">Vencidas</option>
@@ -857,9 +880,12 @@
                         <div>
                             <label class="block text-xs font-bold text-orange-500 uppercase mb-1.5 tracking-wider" style="color: #f97316; letter-spacing: 0.05em;">Estado</label>
                             <select id="estado" class="w-full px-3 py-2 border-2 rounded-md text-sm focus:outline-none bg-white cursor-pointer font-semibold" style="border-color: #f97316; color: #ffffff;">
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Pagada">Pagada</option>
-                                <option value="Vencida">Vencida</option>
+                                <option value="dispatch">Despacho</option>
+                                <option value="abono">Abono</option>
+                                <option value="saldo_actual">Sado actual</option>
+                                <option value="paid">Pagadas</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="late">Vencidas</option>
                             </select>
                         </div>
                     </div>
@@ -1296,7 +1322,7 @@
             // Limpiar solo los campos específicos en lugar de hacer reset completo
             document.getElementById('cliente').value = '';
             document.getElementById('direccion').value = '';
-            document.getElementById('estado').value = 'Pendiente';
+            document.getElementById('estado').value = 'pending';
             resetItemsTable();
             calculateTotals();
         }
@@ -1549,11 +1575,7 @@
         async function saveInvoice() {
             if (!ensureCanCreateInvoices()) return;
             const total = parseFloat(document.getElementById('totalAmount').textContent);
-            const estadoMap = {
-                'Pagada': 'paid',
-                'Pendiente': 'pending',
-                'Vencida': 'late'
-            };
+            const selectedStatus = document.getElementById('estado').value;
 
             if (editingId) {
                 const existing = invoices.find(inv => inv.id === editingId);
@@ -1581,7 +1603,7 @@
                         client: document.getElementById('cliente').value,
                         date: `${document.getElementById('anio').value}-${String(document.getElementById('mes').value).padStart(2, '0')}-${String(document.getElementById('dia').value).padStart(2, '0')}`,
                         amount: total,
-                        status: estadoMap[document.getElementById('estado').value],
+                        status: selectedStatus,
                         address: document.getElementById('direccion').value,
                         items: items,
                         createdByEmail: invoices[invoiceIndex].createdByEmail || (currentUser ? currentUser.email : null)
@@ -1617,7 +1639,7 @@
                     client: document.getElementById('cliente').value,
                     date: `${document.getElementById('anio').value}-${String(document.getElementById('mes').value).padStart(2, '0')}-${String(document.getElementById('dia').value).padStart(2, '0')}`,
                     amount: total,
-                    status: estadoMap[document.getElementById('estado').value],
+                    status: selectedStatus,
                     address: document.getElementById('direccion').value,
                     items: items,
                     createdByEmail: currentUser ? currentUser.email : null
@@ -1724,8 +1746,7 @@
             const canDelete = currentUser && currentUser.role === 'admin';
             
             listContainer.innerHTML = paginatedInvoices.map(inv => {
-                const statusClass = inv.status === 'paid' ? 'status-paid' : 
-                                   inv.status === 'late' ? 'status-late' : 'status-pending';
+                const statusClass = getStatusClass(inv.status);
                 const statusText = getStatusText(inv.status);
                 
                 return `
@@ -1818,13 +1839,55 @@
             }
         }
 
+        function getStatusClass(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (normalized === 'dispatch' || normalized === 'despacho') return 'status-dispatch';
+            if (normalized === 'abono') return 'status-paid';
+            if (normalized === 'saldo_actual' || normalized === 'saldo actual' || normalized === 'sado actual') return 'status-saldo';
+            if (normalized === 'paid' || normalized === 'pagada' || normalized === 'pagadas') return 'status-paid';
+            if (normalized === 'late' || normalized === 'vencida' || normalized === 'vencidas') return 'status-late';
+            return 'status-pending';
+        }
+
         function getStatusText(status) {
             const statusMap = {
-                'paid': 'Pagada',
-                'pending': 'Pendiente',
-                'late': 'Vencida'
+                'dispatch': 'Despacho',
+                'despacho': 'Despacho',
+                'abono': 'Abono',
+                'saldo_actual': 'Sado actual',
+                'saldo actual': 'Sado actual',
+                'sado actual': 'Sado actual',
+                'paid': 'Pagadas',
+                'pagada': 'Pagadas',
+                'pagadas': 'Pagadas',
+                'pending': 'Pendientes',
+                'pendiente': 'Pendientes',
+                'pendientes': 'Pendientes',
+                'late': 'Vencidas',
+                'vencida': 'Vencidas',
+                'vencidas': 'Vencidas'
             };
-            return statusMap[status] || status;
+            return statusMap[String(status || '').toLowerCase()] || status;
+        }
+
+        function getStatusPdfChipData(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (normalized === 'dispatch' || normalized === 'despacho') {
+                return { text: 'Despacho', background: '#dbeafe', color: '#1e40af' };
+            }
+            if (normalized === 'abono') {
+                return { text: 'Abono', background: '#dcfce7', color: '#166534' };
+            }
+            if (normalized === 'saldo_actual' || normalized === 'saldo actual' || normalized === 'sado actual') {
+                return { text: 'Sado actual', background: '#ede9fe', color: '#5b21b6' };
+            }
+            if (normalized === 'paid' || normalized === 'pagada' || normalized === 'pagadas') {
+                return { text: 'Pagadas', background: '#dcfce7', color: '#166534' };
+            }
+            if (normalized === 'late' || normalized === 'vencida' || normalized === 'vencidas') {
+                return { text: 'Vencidas', background: '#fee2e2', color: '#991b1b' };
+            }
+            return { text: 'Pendientes', background: '#fef3c7', color: '#92400e' };
         }
 
         function viewInvoice(id) {
@@ -1872,6 +1935,7 @@
         function previewPDF(id) {
             const inv = invoices.find(i => i.id === id);
             if (!inv) return;
+            const statusChip = getStatusPdfChipData(inv.status);
 
             let itemsRows = '';
             inv.items.forEach((item, index) => {
@@ -1948,8 +2012,8 @@
                             font-weight: 700;
                             letter-spacing: 0.4px;
                             text-transform: uppercase;
-                            color: #1d4ed8;
-                            background: #dbeafe;
+                            color: ${statusChip.color};
+                            background: ${statusChip.background};
                         }
                         .info-section {
                             display: grid;
@@ -2078,7 +2142,7 @@
                             </div>
                             <div class="header-meta">
                                 <p><strong>N°:</strong> ${inv.number}</p>
-                                <span class="invoice-chip">${getStatusText(inv.status)}</span>
+                                <span class="invoice-chip">${statusChip.text}</span>
                             </div>
                         </div>
                         
@@ -2089,7 +2153,7 @@
                             </div>
                             <div class="info-box">
                                 <p><strong>Fecha:</strong> ${inv.date}</p>
-                                <p><strong>Estado:</strong> ${getStatusText(inv.status)}</p>
+                                <p><strong>Estado:</strong> ${statusChip.text}</p>
                             </div>
                         </div>
                         
@@ -2152,8 +2216,20 @@
             document.getElementById('cliente').value = inv.client;
             document.getElementById('direccion').value = inv.address || '';
             
-            const statusToEstado = {paid: 'Pagada', pending: 'Pendiente', late: 'Vencida'};
-            document.getElementById('estado').value = statusToEstado[inv.status];
+            const legacyToCanonicalStatus = {
+                pagada: 'paid',
+                pagadas: 'paid',
+                pendiente: 'pending',
+                pendientes: 'pending',
+                vencida: 'late',
+                vencidas: 'late',
+                despacho: 'dispatch',
+                abono: 'abono',
+                'saldo actual': 'saldo_actual',
+                'sado actual': 'saldo_actual'
+            };
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            document.getElementById('estado').value = legacyToCanonicalStatus[normalizedStatus] || normalizedStatus || 'pending';
             
             resetItemsTable();
             if (inv.items && inv.items.length > 0) {
@@ -2296,8 +2372,7 @@
             const canDelete = currentUser && currentUser.role === 'admin';
             
             listContainer.innerHTML = paginatedInvoices.map(inv => {
-                const statusClass = inv.status === 'paid' ? 'status-paid' : 
-                                   inv.status === 'late' ? 'status-late' : 'status-pending';
+                const statusClass = getStatusClass(inv.status);
                 const statusText = getStatusText(inv.status);
                 
                 return `
@@ -2326,6 +2401,7 @@
                         <span class="text-2xl font-bold text-gray-900">$${inv.amount.toFixed(2)}</span>
                         <div class="flex items-center gap-6"></div>
                     </div>
+                    <span class="status-badge ${statusClass} absolute bottom-3 right-3">${statusText}</span>
                 </div>
                 `;
             }).join('');
