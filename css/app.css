@@ -181,6 +181,7 @@ body.pdf-preview .pdf-legacy-card {
     border-radius: 6px;
     padding: 8px;
     color: #1f2937;
+    width: 100%;
 }
 
 body.pdf-preview .pdf-legacy-head {
@@ -196,7 +197,7 @@ body.pdf-preview .pdf-legacy-brand {
 }
 
 body.pdf-preview .pdf-legacy-logo {
-    font-size: 24px;
+    font-size: 18px;
     line-height: 1;
     margin-bottom: 1px;
     color: #1e3a8a;
@@ -248,14 +249,14 @@ body.pdf-preview .pdf-legacy-doc-number-row {
 }
 
 body.pdf-preview .pdf-legacy-doc-number-row span {
-    font-size: 20px;
+    font-size: 16px;
     line-height: 1;
     color: #b45309;
     font-weight: 700;
 }
 
 body.pdf-preview .pdf-legacy-doc-number-row strong {
-    font-size: 26px;
+    font-size: 19px;
     line-height: 1;
     color: #dc2626;
     letter-spacing: 0.08em;
@@ -376,12 +377,21 @@ body.pdf-preview .pdf-legacy-foot {
 }
 
 body.pdf-preview .pdf-copies {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     zoom: var(--pdf-scale, 1);
     transform-origin: top left;
     margin: 0 auto;
+}
+
+body.pdf-preview .pdf-copy-slot {
+    min-height: 285px;
+    display: flex;
+}
+
+body.pdf-preview .pdf-copy-slot:nth-child(3) {
+    grid-column: 1 / 2;
 }
 
 body.pdf-preview .pdf-fit-area {
@@ -392,12 +402,15 @@ body.pdf-preview .pdf-fit-area {
 body.pdf-preview .pdf-copy {
     break-inside: avoid;
     page-break-inside: avoid;
+    width: 100%;
+    display: flex;
 }
 
 body.pdf-preview .pdf-cut-line {
     border-top: 2px dashed #6b7280;
     height: 0;
     margin: 2px 4px;
+    display: none;
 }
 
 body.pdf-preview .pdf-header {
@@ -540,7 +553,7 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
     }
 
     body.pdf-preview .pdf-copies {
-        gap: 6px;
+        gap: 8px;
     }
 
     body.pdf-preview .pdf-cut-line {
@@ -555,6 +568,14 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
 }
 
 @media (max-width: 768px) {
+    body.pdf-preview .pdf-copies {
+        grid-template-columns: 1fr;
+    }
+
+    body.pdf-preview .pdf-copy-slot:nth-child(3) {
+        grid-column: auto;
+    }
+
     body.pdf-preview {
         padding: 12px;
     }

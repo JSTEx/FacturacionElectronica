@@ -1331,8 +1331,11 @@
                     </div>
             `;
 
-            const copiesHtml = [invoiceCardHtml, invoiceCardHtml, invoiceCardHtml]
-                .join('<div class="pdf-cut-line" aria-hidden="true"></div>');
+            const copiesHtml = `
+                <div class="pdf-copy-slot">${invoiceCardHtml}</div>
+                <div class="pdf-copy-slot">${invoiceCardHtml}</div>
+                <div class="pdf-copy-slot">${invoiceCardHtml}</div>
+            `;
 
             const baseHref = new URL('./', window.location.href).href;
             const html = `
