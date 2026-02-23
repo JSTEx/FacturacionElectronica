@@ -1363,7 +1363,7 @@
                     <script>
                         (function () {
                             const MIN_SCALE = 0.1;
-                            const PRINT_SAFE_FACTOR = 0.9;
+                            const PRINT_SAFE_FACTOR = 0.95;
 
                             function getPrintableLetterHeightPx() {
                                 const probe = document.createElement('div');
@@ -1377,13 +1377,15 @@
                                 const pxPerMm = probe.getBoundingClientRect().height / 100;
                                 probe.remove();
 
-                                const printableMm = 279.4 - 10 - 10;
+                                const marginMm = 8;
+                                const printableMm = 279.4 - marginMm - marginMm;
                                 return Math.max(120, printableMm * pxPerMm);
                             }
 
                             function autoFitInvoices() {
                                 const copies = document.getElementById('pdfCopies');
-                                if (!copies) return;
+                                const fitArea = document.getElementById('pdfFitArea');
+                                if (!copies || !fitArea) return;
 
                                 document.documentElement.style.setProperty('--pdf-scale', '1');
                                 const availableHeight = Math.max(120, getPrintableLetterHeightPx() * PRINT_SAFE_FACTOR);
