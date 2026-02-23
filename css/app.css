@@ -2208,3 +2208,11 @@ body.page-admin .app-loading-hidden {
         text-align: left !important;
     }
 }
+
+/* Toast personalizado - abajo del menú */
+.swal-top-center-custom {
+    top: 80px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    position: fixed !important;
+}
