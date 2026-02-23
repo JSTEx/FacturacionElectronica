@@ -810,113 +810,98 @@
             const numero = document.getElementById('numero').value;
             const cliente = document.getElementById('cliente').value.trim();
             
-            if (!dia || !mes || !anio) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Fecha incompleta',
-                    text: 'Por favor complete día, mes y año',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
+            const errors = [];
+            const clearIds = ['dia', 'mes', 'anio', 'numero', 'cliente', 'estado'];
+            clearIds.forEach(id => document.getElementById(id).classList.remove('input-error'));
+
+            const addError = (id, message) => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('input-error');
+                errors.push(message);
+            };
+
+            if (!dia) {
+                addError('dia', 'Día requerido');
+            } else if (dia < 1 || dia > 31) {
+                addError('dia', 'Día inválido (1 a 31)');
             }
-            
-            if (dia < 1 || dia > 31) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Día inválido',
-                    text: 'El día debe estar entre 1 y 31',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
+
+            if (!mes) {
+                addError('mes', 'Mes requerido');
+            } else if (mes < 1 || mes > 12) {
+                addError('mes', 'Mes inválido (1 a 12)');
             }
-            
-            if (mes < 1 || mes > 12) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Mes inválido',
-                    text: 'El mes debe estar entre 1 y 12',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
+
+            if (!anio) {
+                addError('anio', 'Año requerido');
+            } else if (anio < 2020 || anio > 2100) {
+                addError('anio', 'Año inválido (2020 a 2100)');
             }
-            
+
             if (!numero) {
-                document.getElementById('numero').classList.add('input-error');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Número requerido',
-                    text: 'Por favor ingrese el número de factura',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
-            } else {
-                document.getElementById('numero').classList.remove('input-error');
+                addError('numero', 'Número requerido');
             }
-            
+
             if (!cliente) {
-                document.getElementById('cliente').classList.add('input-error');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Cliente requerido',
-                    text: 'Por favor ingrese el nombre del cliente',
-                    confirmButtonColor: '#1a1a1a'
-                });
-                return;
-            } else {
-                document.getElementById('cliente').classList.remove('input-error');
+                addError('cliente', 'Cliente requerido');
             }
-            
+
+            const estado = document.getElementById('estado').value;
+            if (!estado) {
+                addError('estado', 'Estado requerido');
+            }
+
             const rows = document.querySelectorAll('#itemsTableBody tr');
             let hasItems = false;
-            let validItems = true;
-            
+
             // Limpiar resaltados anteriores de inputs
-            document.querySelectorAll('#itemsTableBody .item-desc, #itemsTableBody .item-precio').forEach(input => {
+            document.querySelectorAll('#itemsTableBody .item-desc, #itemsTableBody .item-precio, #itemsTableBody .item-cant').forEach(input => {
                 input.classList.remove('input-error');
             });
-            
-            rows.forEach(row => {
+
+            rows.forEach((row, index) => {
                 const desc = row.querySelector('.item-desc').value.trim();
                 const precio = parseFloat(row.querySelector('.item-precio').value) || 0;
-                
-                if (desc && precio > 0) {
+                const cant = parseFloat(row.querySelector('.item-cant').value) || 0;
+                const hasAny = desc || precio > 0 || cant > 0;
+                const isComplete = desc && precio > 0 && cant > 0;
+
+                if (isComplete) {
                     hasItems = true;
-                } else if (desc || precio > 0) {
-                    validItems = false;
-                    // Resaltar solo los inputs con error
-                    if (!desc) row.querySelector('.item-desc').classList.add('input-error');
-                    if (precio <= 0) row.querySelector('.item-precio').classList.add('input-error');
+                } else if (hasAny) {
+                    const missing = [];
+                    if (!desc) {
+                        row.querySelector('.item-desc').classList.add('input-error');
+                        missing.push('descripción');
+                    }
+                    if (precio <= 0) {
+                        row.querySelector('.item-precio').classList.add('input-error');
+                        missing.push('precio');
+                    }
+                    if (cant <= 0) {
+                        row.querySelector('.item-cant').classList.add('input-error');
+                        missing.push('cantidad');
+                    }
+                    if (missing.length) {
+                        errors.push(`Item ${index + 1}: falta ${missing.join(', ')}`);
+                    }
                 }
             });
-            
+
             if (!hasItems) {
+                errors.push('Agregue al menos un item completo');
+            }
+
+            if (errors.length) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Items requeridos',
-                    text: 'Agregue al menos un item completo (descripción y precio)',
+                    title: 'Corrige los campos',
+                    html: `<ul class="text-left">${errors.map(err => `<li>${err}</li>`).join('')}</ul>`,
                     confirmButtonColor: '#1a1a1a'
                 });
                 return;
             }
-            
-            if (!validItems) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Items incompletos',
-                    text: 'Algunos items tienen descripción o precio faltante. ¿Desea continuar solo con los items completos?',
-                    showCancelButton: true,
-                    confirmButtonColor: '#1a1a1a',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, continuar',
-                    cancelButtonText: 'No, corregir'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        await saveInvoice();
-                    }
-                });
-                return;
-            }
-            
+
             await saveInvoice();
         }
 
