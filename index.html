@@ -344,6 +344,18 @@
             return isInvoiceOwner(invoice);
         }
 
+        function canViewInvoice(invoice) {
+            if (!currentUser || !invoice) return false;
+            if (currentUser.role === 'admin') return true;
+            return isInvoiceOwner(invoice);
+        }
+
+        function filterInvoicesByVisibility(list) {
+            if (!currentUser || !Array.isArray(list)) return [];
+            if (currentUser.role === 'admin') return list;
+            return list.filter(inv => isInvoiceOwner(inv));
+        }
+
         function ensureCanCreateInvoices() {
             if (canCreateInvoices()) return true;
             Swal.fire({
@@ -361,6 +373,17 @@
                 icon: 'error',
                 title: 'Sin permisos',
                 text: 'Solo puedes editar las facturas creadas por tu usuario.',
+                confirmButtonColor: '#1a1a1a'
+            });
+            return false;
+        }
+
+        function ensureCanViewInvoice(invoice) {
+            if (canViewInvoice(invoice)) return true;
+            Swal.fire({
+                icon: 'error',
+                title: 'Sin permisos',
+                text: 'Solo puedes ver las facturas creadas por tu usuario.',
                 confirmButtonColor: '#1a1a1a'
             });
             return false;
@@ -996,12 +1019,13 @@
             const totalCount = document.getElementById('totalCount');
             const paginationContainer = document.getElementById('paginationContainer');
             
-            let filtered = filterInvoicesByStatus(invoices, currentFilter);
+            const visible = filterInvoicesByVisibility(invoices);
+            let filtered = filterInvoicesByStatus(visible, currentFilter);
             filtered = sortInvoicesDescById(filtered);
             
             totalCount.textContent = `${filtered.length} total`;
             
-            if (invoices.length === 0) {
+            if (visible.length === 0) {
                 emptyState.classList.remove('hidden');
                 listContainer.classList.add('hidden');
                 paginationContainer.classList.add('hidden');
@@ -1109,7 +1133,8 @@
         function nextPage() {
             const listContainer = document.getElementById('invoiceList');
             if (!listContainer.classList.contains('hidden')) {
-                const filtered = filterInvoicesByStatus(invoices, currentFilter);
+                const visible = filterInvoicesByVisibility(invoices);
+                const filtered = filterInvoicesByStatus(visible, currentFilter);
                 const totalPages = paginateList(filtered, currentPage, invoicesPerPage).totalPages;
                 if (currentPage < totalPages) {
                     currentPage++;
@@ -1126,6 +1151,7 @@
         }
 
         function downloadInvoicePdf(inv, canViewAmount) {
+            if (!ensureCanViewInvoice(inv)) return;
             if (!window.jspdf || !window.jspdf.jsPDF) {
                 Swal.fire({
                     icon: 'error',
@@ -1211,6 +1237,7 @@
         }
 
         function previewInvoicePdf(inv, canViewAmount) {
+            if (!ensureCanViewInvoice(inv)) return;
             const statusText = getStatusText(inv.status);
             const addressText = canViewAmount ? (inv.address || 'N/A') : 'Oculta';
             const totalText = canViewAmount ? `$${Number(inv.amount || 0).toFixed(2)}` : 'Oculto';
@@ -1435,6 +1462,7 @@
         function viewInvoice(id) {
             const inv = invoices.find(i => i.id === id);
             if (!inv) return;
+            if (!ensureCanViewInvoice(inv)) return;
             const canViewAmount = canSeeInvoiceAmount(inv);
             const addressText = canViewAmount ? (inv.address || 'N/A') : 'Oculta';
 
@@ -1631,7 +1659,8 @@
             const emptyState = document.getElementById('emptyState');
             const paginationContainer = document.getElementById('paginationContainer');
             
-            const baseFiltered = filterInvoicesByStatus(invoices, currentFilter);
+            const visible = filterInvoicesByVisibility(invoices);
+            const baseFiltered = filterInvoicesByStatus(visible, currentFilter);
             let filtered = searchInvoices(baseFiltered, term);
             filtered = sortInvoicesDescById(filtered);
             
