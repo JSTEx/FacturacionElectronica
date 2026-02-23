@@ -1607,21 +1607,17 @@
                         const undoResult = await Swal.fire({
                             toast: true,
                             position: 'bottom-end',
-                            icon: 'error',
+                            icon: 'warning',
                             title: `Factura #${deletedInvoice.number} eliminada`,
                             showConfirmButton: true,
                             confirmButtonText: 'Deshacer',
                             confirmButtonColor: '#10b981',
                             timer: 5000,
-                            timerProgressBar: true,
-                            background: '#ef4444',
-                            color: 'white',
-                            iconColor: 'white'
+                            timerProgressBar: true
                         });
 
                         if (undoResult.isConfirmed) {
                             await saveInvoiceRecord(deletedInvoice);
-                            invoices = [...invoices, deletedInvoice];
                             updateInvoiceList();
                             showToast(`Factura #${deletedInvoice.number} restaurada`, 'success', 1800, 'top-end', { toastType: 'success' });
                         }
