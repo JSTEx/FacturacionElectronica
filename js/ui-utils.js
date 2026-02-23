@@ -1,6 +1,8 @@
 function showToast(title, icon = 'success', timer = 1600, position = 'top-end', options = {}) {
     if (!window.Swal) return;
     const theme = Object.assign({}, window.toastTheme || {}, options || {});
+    const toastType = options.toastType || 'success'; // success, warning, danger
+    
     return Swal.fire({
         toast: true,
         position: 'top-end',
@@ -12,7 +14,9 @@ function showToast(title, icon = 'success', timer = 1600, position = 'top-end', 
         background: theme.background,
         color: theme.color,
         iconColor: theme.iconColor,
-        customClass: { popup: 'swal-top-center-custom' }
+        customClass: { 
+            popup: `swal-toast-${toastType}`
+        }
     });
 }
 

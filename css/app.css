@@ -2210,6 +2210,20 @@ body.page-admin .app-loading-hidden {
 }
 
 /* Toast personalizado - esquina superior derecha, debajo del menú */
-.swal-top-center-custom {
+.swal-toast-success {
     top: 80px !important;
+    --swal-background: #10b981 !important;
+    --swal-color: white !important;
+}
+
+.swal-toast-danger {
+    top: 80px !important;
+    --swal-background: #ef4444 !important;
+    --swal-color: white !important;
+}
+
+.swal-toast-warning {
+    top: 80px !important;
+    --swal-background: #f59e0b !important;
+    --swal-color: white !important;
 }
