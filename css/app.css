@@ -381,26 +381,12 @@ body.pdf-preview .pdf-copies {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     width: 100%;
+    position: relative;
 }
 
 body.pdf-preview .pdf-copy-slot {
     display: flex;
     height: fit-content;
-    border: 2px dashed #cc0000;
-    padding: 4px;
-    position: relative;
-}
-
-body.pdf-preview .pdf-copy-slot::before {
-    content: "✂ CORTAR";
-    position: absolute;
-    top: 2px;
-    left: 4px;
-    font-size: 9px;
-    color: #cc0000;
-    background: white;
-    padding: 0 2px;
-    display: none;
 }
 
 body.pdf-preview .pdf-copy-slot:nth-child(3) {
@@ -582,14 +568,55 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
         page-break-after: avoid;
     }
 
-    body.pdf-preview .pdf-copy-slot {
-        page-break-inside: auto;
-        border: none;
-        padding: 0;
+    body.pdf-preview .pdf-copies {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: auto auto auto;
+        gap: 0;
+        overflow: hidden;
+        position: relative;
     }
 
-    body.pdf-preview .pdf-copy-slot::before {
-        display: none;
+    body.pdf-preview .pdf-copies::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        transform: translateY(calc(-50% - 4px));
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: repeating-linear-gradient(
+            90deg,
+            #000 0px,
+            #000 4px,
+            transparent 4px,
+            transparent 8px
+        );
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    body.pdf-preview .pdf-copies::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 55%;
+        background: repeating-linear-gradient(
+            180deg,
+            #000 0px,
+            #000 4px,
+            transparent 4px,
+            transparent 8px
+        );
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    body.pdf-preview .pdf-copy-slot {
+        page-break-inside: auto;
     }
 
     body.pdf-preview .pdf-copy-slot:nth-child(3) {
