@@ -864,8 +864,10 @@
             let hasItems = false;
             let validItems = true;
             
-            // Limpiar resaltados anteriores
-            rows.forEach(row => row.classList.remove('item-error'));
+            // Limpiar resaltados anteriores de inputs
+            document.querySelectorAll('#itemsTableBody .item-desc, #itemsTableBody .item-precio').forEach(input => {
+                input.classList.remove('input-error');
+            });
             
             rows.forEach(row => {
                 const desc = row.querySelector('.item-desc').value.trim();
@@ -875,8 +877,9 @@
                     hasItems = true;
                 } else if (desc || precio > 0) {
                     validItems = false;
-                    // Resaltar la fila con error
-                    row.classList.add('item-error');
+                    // Resaltar solo los inputs con error
+                    if (!desc) row.querySelector('.item-desc').classList.add('input-error');
+                    if (precio <= 0) row.querySelector('.item-precio').classList.add('input-error');
                 }
             });
             
