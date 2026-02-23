@@ -1363,34 +1363,16 @@
                     <script>
                         (function () {
                             const MIN_SCALE = 0.1;
-                            const PRINT_SAFE_FACTOR = 0.95;
-
-                            function getPrintableLetterHeightPx() {
-                                const probe = document.createElement('div');
-                                probe.style.width = '100mm';
-                                probe.style.height = '100mm';
-                                probe.style.position = 'absolute';
-                                probe.style.left = '-9999px';
-                                probe.style.top = '-9999px';
-                                probe.style.visibility = 'hidden';
-                                document.body.appendChild(probe);
-                                const pxPerMm = probe.getBoundingClientRect().height / 100;
-                                probe.remove();
-
-                                const marginMm = 15;
-                                const printableMm = 279.4 - marginMm - marginMm;
-                                return Math.max(120, printableMm * pxPerMm);
-                            }
 
                             function autoFitInvoices() {
                                 const copies = document.getElementById('pdfCopies');
-                                const fitArea = document.getElementById('pdfFitArea');
-                                if (!copies || !fitArea) return;
+                                if (!copies) return;
 
-                                document.documentElement.style.setProperty('--pdf-scale', '1');
-                                const availableHeight = Math.max(120, getPrintableLetterHeightPx() * PRINT_SAFE_FACTOR);
+                                const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+                                const copiesRect = copies.getBoundingClientRect();
+                                const availableHeight = windowHeight - 120;
 
-                                const rawHeight = Math.max(1, copies.scrollHeight);
+                                const rawHeight = copies.scrollHeight;
                                 const scale = Math.max(MIN_SCALE, Math.min(1, availableHeight / rawHeight));
 
                                 document.documentElement.style.setProperty('--pdf-scale', String(scale));
