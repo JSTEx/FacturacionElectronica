@@ -312,7 +312,7 @@ body.pdf-preview .status-late { background-color: #fee2e2; color: #991b1b; borde
 body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
 
 @page {
-    size: A4 portrait;
+    size: Letter portrait;
     margin: 10mm;
 }
 

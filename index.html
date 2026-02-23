@@ -1298,7 +1298,7 @@
                             const MIN_SCALE = 0.1;
                             const PRINT_SAFE_FACTOR = 0.9;
 
-                            function getPrintableA4HeightPx() {
+                            function getPrintableLetterHeightPx() {
                                 const probe = document.createElement('div');
                                 probe.style.width = '100mm';
                                 probe.style.height = '100mm';
@@ -1310,7 +1310,7 @@
                                 const pxPerMm = probe.getBoundingClientRect().height / 100;
                                 probe.remove();
 
-                                const printableMm = 297 - 10 - 10;
+                                const printableMm = 279.4 - 10 - 10;
                                 return Math.max(120, printableMm * pxPerMm);
                             }
 
@@ -1319,7 +1319,7 @@
                                 if (!copies) return;
 
                                 document.documentElement.style.setProperty('--pdf-scale', '1');
-                                const availableHeight = Math.max(120, getPrintableA4HeightPx() * PRINT_SAFE_FACTOR);
+                                const availableHeight = Math.max(120, getPrintableLetterHeightPx() * PRINT_SAFE_FACTOR);
 
                                 const rawHeight = Math.max(1, copies.scrollHeight);
                                 const scale = Math.max(MIN_SCALE, Math.min(1, availableHeight / rawHeight));
