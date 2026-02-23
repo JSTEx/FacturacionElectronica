@@ -841,6 +841,7 @@
             }
             
             if (!numero) {
+                document.getElementById('numero').classList.add('input-error');
                 Swal.fire({
                     icon: 'error',
                     title: 'Número requerido',
@@ -848,9 +849,12 @@
                     confirmButtonColor: '#1a1a1a'
                 });
                 return;
+            } else {
+                document.getElementById('numero').classList.remove('input-error');
             }
             
             if (!cliente) {
+                document.getElementById('cliente').classList.add('input-error');
                 Swal.fire({
                     icon: 'error',
                     title: 'Cliente requerido',
@@ -858,6 +862,8 @@
                     confirmButtonColor: '#1a1a1a'
                 });
                 return;
+            } else {
+                document.getElementById('cliente').classList.remove('input-error');
             }
             
             const rows = document.querySelectorAll('#itemsTableBody tr');

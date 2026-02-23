@@ -841,6 +841,21 @@ body.page-index #itemsTableBody .input-error:focus {
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
 }
 
+body.page-index #numero.input-error,
+body.page-index #cliente.input-error,
+body.page-index #direccion.input-error {
+    border-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4) !important;
+}
+
+body.page-index #numero.input-error:focus,
+body.page-index #cliente.input-error:focus,
+body.page-index #direccion.input-error:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+}
+
 html.dark-mode body.page-index #itemsTableBody .input-error {
     border-color: #ef4444 !important;
     background-color: rgba(239, 68, 68, 0.15);
@@ -848,6 +863,21 @@ html.dark-mode body.page-index #itemsTableBody .input-error {
 }
 
 html.dark-mode body.page-index #itemsTableBody .input-error:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+}
+
+html.dark-mode body.page-index #numero.input-error,
+html.dark-mode body.page-index #cliente.input-error,
+html.dark-mode body.page-index #direccion.input-error {
+    border-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.15);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4) !important;
+}
+
+html.dark-mode body.page-index #numero.input-error:focus,
+html.dark-mode body.page-index #cliente.input-error:focus,
+html.dark-mode body.page-index #direccion.input-error:focus {
     border-color: #ef4444 !important;
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
 }
