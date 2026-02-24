@@ -1396,10 +1396,16 @@
                                 if (!copies) return;
 
                                 const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-                                const copiesRect = copies.getBoundingClientRect();
-                                const availableHeight = windowHeight - 120;
+                                const actions = document.querySelector('.pdf-actions');
+                                const actionsVisible = actions && window.getComputedStyle(actions).display !== 'none';
+                                const actionsHeight = actionsVisible ? actions.offsetHeight : 0;
+                                const bodyStyles = window.getComputedStyle(document.body);
+                                const bodyPaddingTop = parseFloat(bodyStyles.paddingTop) || 0;
+                                const bodyPaddingBottom = parseFloat(bodyStyles.paddingBottom) || 0;
+                                const availableHeight = Math.max(1, windowHeight - actionsHeight - bodyPaddingTop - bodyPaddingBottom - 8);
 
                                 const rawHeight = copies.scrollHeight;
+                                if (!rawHeight) return;
                                 const scale = Math.max(MIN_SCALE, Math.min(1, availableHeight / rawHeight));
 
                                 document.documentElement.style.setProperty('--pdf-scale', String(scale));

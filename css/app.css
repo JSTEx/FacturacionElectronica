@@ -527,7 +527,7 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
 
 @page {
     size: Letter portrait;
-    margin: 8mm;
+    margin: 0;
 }
 
 @media print {
