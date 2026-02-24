@@ -1065,6 +1065,7 @@
         }
 
         function renderInvoiceCard(inv, canDelete, withTitle = false) {
+            if (!canViewInvoice(inv)) return '';
             const statusClass = getStatusClass(inv.status);
             const statusText = getStatusText(inv.status);
             const canViewAmount = canSeeInvoiceAmount(inv);
@@ -1360,7 +1361,7 @@
             const copiesHtml = `
                 <div class="pdf-copy-slot">${invoiceCardHtml}</div>
                 <div class="pdf-copy-slot">${invoiceCardHtml}</div>
-                <div class="pdf-copy-slot pdf-copy-slot-horizontal">${invoiceCardHtml}</div>
+                <div class="pdf-copy-slot">${invoiceCardHtml}</div>
             `;
 
             const baseHref = new URL('./', window.location.href).href;
@@ -1389,33 +1390,17 @@
                     <script>
                         (function () {
                             const MIN_SCALE = 0.1;
-                            const SAFETY_PX = 16;
-                            const LETTER_WIDTH_MM = 215.9;
-                            const LETTER_HEIGHT_MM = 279.4;
-                            const PAGE_MARGIN_MM = 10;
-                            const FIT_PADDING_MM = 6;
-                            const PX_PER_MM = 96 / 25.4;
 
                             function autoFitInvoices() {
                                 const copies = document.getElementById('pdfCopies');
-                                const fitArea = document.getElementById('pdfFitArea');
-                                if (!copies || !fitArea) return;
+                                if (!copies) return;
 
-                                const printableWidthPx = Math.max(1, (LETTER_WIDTH_MM - (PAGE_MARGIN_MM * 2) - FIT_PADDING_MM) * PX_PER_MM);
-                                const printableHeightPx = Math.max(1, (LETTER_HEIGHT_MM - (PAGE_MARGIN_MM * 2) - FIT_PADDING_MM) * PX_PER_MM);
+                                const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+                                const copiesRect = copies.getBoundingClientRect();
+                                const availableHeight = windowHeight - 120;
 
-                                const viewportWidthPx = Math.max(1, fitArea.clientWidth - SAFETY_PX * 2);
-                                const viewportHeightPx = Math.max(1, (window.innerHeight || document.documentElement.clientHeight) - fitArea.getBoundingClientRect().top - SAFETY_PX);
-
-                                const availableWidth = Math.min(printableWidthPx, viewportWidthPx);
-                                const availableHeight = Math.min(printableHeightPx, viewportHeightPx);
-
-                                const rawWidth = Math.max(1, copies.scrollWidth);
-                                const rawHeight = Math.max(1, copies.scrollHeight);
-
-                                const widthScale = availableWidth / rawWidth;
-                                const heightScale = availableHeight / rawHeight;
-                                const scale = Math.max(MIN_SCALE, Math.min(1, widthScale, heightScale));
+                                const rawHeight = copies.scrollHeight;
+                                const scale = Math.max(MIN_SCALE, Math.min(1, availableHeight / rawHeight));
 
                                 document.documentElement.style.setProperty('--pdf-scale', String(scale));
                             }
