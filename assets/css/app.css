@@ -6,10 +6,20 @@ html.theme-transitioning *::after {
     transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, fill 220ms ease, stroke 220ms ease !important;
 }
 
+html.theme-transitioning .dark-mode-toggle .icon-sun,
+html.theme-transitioning .dark-mode-toggle .icon-moon {
+    transition: transform 0.52s cubic-bezier(0.2, 1.75, 0.3, 1), opacity 0.28s ease, color 0.24s ease !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
+        transition: none !important;
+    }
+
+    html.theme-transitioning .dark-mode-toggle .icon-sun,
+    html.theme-transitioning .dark-mode-toggle .icon-moon {
         transition: none !important;
     }
 }
@@ -921,6 +931,10 @@ body.page-index #direccion.input-error,
 body.page-index #dia.input-error,
 body.page-index #mes.input-error,
 body.page-index #anio.input-error,
+body.page-index #abono.input-error,
+body.page-index #detalleDespacho.input-error,
+body.page-index #fechaVencimiento.input-error,
+body.page-index #fechaPago.input-error,
 body.page-index #estado.input-error {
     border-color: #ef4444 !important;
     background-color: rgba(239, 68, 68, 0.1);
@@ -933,6 +947,10 @@ body.page-index #direccion.input-error:focus,
 body.page-index #dia.input-error:focus,
 body.page-index #mes.input-error:focus,
 body.page-index #anio.input-error:focus,
+body.page-index #abono.input-error:focus,
+body.page-index #detalleDespacho.input-error:focus,
+body.page-index #fechaVencimiento.input-error:focus,
+body.page-index #fechaPago.input-error:focus,
 body.page-index #estado.input-error:focus {
     border-color: #ef4444 !important;
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
@@ -955,6 +973,10 @@ html.dark-mode body.page-index #direccion.input-error,
 html.dark-mode body.page-index #dia.input-error,
 html.dark-mode body.page-index #mes.input-error,
 html.dark-mode body.page-index #anio.input-error,
+html.dark-mode body.page-index #abono.input-error,
+html.dark-mode body.page-index #detalleDespacho.input-error,
+html.dark-mode body.page-index #fechaVencimiento.input-error,
+html.dark-mode body.page-index #fechaPago.input-error,
 html.dark-mode body.page-index #estado.input-error {
     border-color: #ef4444 !important;
     background-color: rgba(239, 68, 68, 0.15);
@@ -967,6 +989,10 @@ html.dark-mode body.page-index #direccion.input-error:focus,
 html.dark-mode body.page-index #dia.input-error:focus,
 html.dark-mode body.page-index #mes.input-error:focus,
 html.dark-mode body.page-index #anio.input-error:focus,
+html.dark-mode body.page-index #abono.input-error:focus,
+html.dark-mode body.page-index #detalleDespacho.input-error:focus,
+html.dark-mode body.page-index #fechaVencimiento.input-error:focus,
+html.dark-mode body.page-index #fechaPago.input-error:focus,
 html.dark-mode body.page-index #estado.input-error:focus {
     border-color: #ef4444 !important;
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
@@ -1039,12 +1065,12 @@ body.page-index .dark-mode-toggle:active { transform: translateY(0); }
 body.page-index .toggle-icon { width: 20px; height: 20px; position: relative; display:inline-block; }
 
 body.page-index .icon-sun,
-body.page-index .icon-moon { position: absolute; width: 20px; height: 20px; transition: all 0.28s ease; }
+body.page-index .icon-moon { position: absolute; width: 20px; height: 20px; transition: transform 0.52s cubic-bezier(0.2, 1.75, 0.3, 1), opacity 0.28s ease, color 0.24s ease; will-change: transform, opacity; }
 
 body.page-index .icon-sun { color: #f59e0e; }
-body.page-index .icon-moon { color: #6366f1; opacity: 0; transform: scale(0.8) rotate(-20deg); }
+body.page-index .icon-moon { color: #6366f1; opacity: 0; transform: scale(0.48) rotate(-58deg); }
 
-html.dark-mode body.page-index .icon-sun { opacity: 0; transform: scale(0.8) rotate(20deg); }
+html.dark-mode body.page-index .icon-sun { opacity: 0; transform: scale(0.48) rotate(58deg); }
 html.dark-mode body.page-index .icon-moon { opacity: 1; transform: scale(1) rotate(0deg); }
 
 body.page-index #btnNewInvoice {
@@ -1094,6 +1120,36 @@ html.dark-mode body.page-index #btnAdminPanel.admin-users-btn:hover {
     background-color: #1d4ed8 !important;
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.75);
     transform: translateY(-1px);
+}
+
+body.page-index #btnHistoryView {
+    background-color: #b7791f !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 20px rgba(183, 121, 31, 0.42);
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.page-index #btnHistoryView:hover {
+    background-color: #9f6116 !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 24px rgba(159, 97, 22, 0.55);
+    transform: translateY(-1px);
+}
+
+html.dark-mode body.page-index #btnHistoryView {
+    background-color: #b7791f !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.5);
+}
+
+html.dark-mode body.page-index #btnHistoryView:hover {
+    background-color: #9f6116 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.68);
 }
 
 body.page-index #submitBtn {
@@ -1156,9 +1212,34 @@ body.page-index #invoiceFormView > div {
     border-color: var(--border-color);
 }
 
+body.page-index .invoice-saldo-box {
+    border: 1px dashed var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: normal;
+    cursor: not-allowed;
+    user-select: none;
+}
+
+body.page-index .invoice-saldo-currency {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 html.dark-mode body.page-index #invoiceFormView h2 {
     color: var(--text-primary);
     border-color: var(--border-color);
+}
+
+html.dark-mode body.page-index .invoice-saldo-box {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+html.dark-mode body.page-index .invoice-saldo-currency {
+    color: var(--text-secondary);
 }
 
 html.dark-mode body.page-index #invoiceFormView input,
@@ -1953,12 +2034,12 @@ body.page-admin .dark-mode-toggle:active { transform: translateY(0); }
 body.page-admin .toggle-icon { width: 20px; height: 20px; position: relative; display:inline-block; }
 
 body.page-admin .icon-sun,
-body.page-admin .icon-moon { position: absolute; width: 20px; height: 20px; transition: all 0.28s ease; }
+body.page-admin .icon-moon { position: absolute; width: 20px; height: 20px; transition: transform 0.52s cubic-bezier(0.2, 1.75, 0.3, 1), opacity 0.28s ease, color 0.24s ease; will-change: transform, opacity; }
 
 body.page-admin .icon-sun { color: #f59e0e; }
-body.page-admin .icon-moon { color: #6366f1; opacity: 0; transform: scale(0.8) rotate(-20deg); }
+body.page-admin .icon-moon { color: #6366f1; opacity: 0; transform: scale(0.48) rotate(-58deg); }
 
-html.dark-mode body.page-admin .icon-sun { opacity: 0; transform: scale(0.8) rotate(20deg); }
+html.dark-mode body.page-admin .icon-sun { opacity: 0; transform: scale(0.48) rotate(58deg); }
 html.dark-mode body.page-admin .icon-moon { opacity: 1; transform: scale(1) rotate(0deg); }
 
 body.page-admin .status-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: capitalize; }
@@ -2306,6 +2387,10 @@ body.page-admin .app-spinner {
     border-top-color: #22c55e;
     border-radius: 50%;
     animation: appSpin 0.8s linear infinite;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
 }
 
 body.page-admin .app-loading-hidden {
@@ -2407,4 +2492,36 @@ body.page-admin .app-loading-hidden {
     top: 80px !important;
     --swal-background: #f59e0b !important;
     --swal-color: white !important;
+}
+
+body.page-index #btnHistoryView svg {
+    color: #ffffff !important;
+}
+
+body.page-index #btnHistoryView:hover svg {
+    color: #ffffff !important;
+}
+
+html.dark-mode body.page-index #btnHistoryView svg {
+    color: #ffffff !important;
+}
+
+html.dark-mode body.page-index #btnHistoryView:hover svg {
+    color: #ffffff !important;
+}
+
+body.page-index #btnHistoryView span {
+    color: #ffffff !important;
+}
+
+body.page-index #btnHistoryView:hover span {
+    color: #ffffff !important;
+}
+
+html.dark-mode body.page-index #btnHistoryView span {
+    color: #ffffff !important;
+}
+
+html.dark-mode body.page-index #btnHistoryView:hover span {
+    color: #ffffff !important;
 }

@@ -124,19 +124,6 @@ function toggleDarkMode(storageKey = 'darkMode') {
         }, 260);
     };
 
-    if (typeof document.startViewTransition === 'function') {
-        const transition = document.startViewTransition(() => {
-            applyTheme();
-        });
-
-        if (transition && transition.finished && typeof transition.finished.finally === 'function') {
-            transition.finished.finally(cleanup);
-        } else {
-            cleanup();
-        }
-        return;
-    }
-
     requestAnimationFrame(() => {
         applyTheme();
         requestAnimationFrame(cleanup);

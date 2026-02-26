@@ -76,6 +76,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nueva Factura
             </button>
+            <a id="btnHistoryView" href="pages/historial.html" class="bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg>
+                <span>Historial pagadas</span>
+            </a>
             <div id="adminPanelBtnContainer"></div>
         </div>
         <div class="flex items-center gap-6">
@@ -99,7 +103,7 @@
         <!-- Lista de Facturas (Vista Principal) -->
         <div id="invoiceListView">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">Facturas</h1>
+                <h1 id="invoiceListTitle" class="text-2xl font-bold uppercase tracking-wide text-gray-900">Facturas Activas</h1>
                 <div class="flex items-center gap-4">
                     <span class="text-sm text-gray-500" id="totalCount">0 total</span>
                 </div>
@@ -110,7 +114,7 @@
                     <input type="text" id="searchInput" placeholder="Buscar facturas..." class="w-full h-10 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-900 transition-colors">
                 </div>
                 <select id="filterSelect" class="h-10 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-900 bg-white min-w-[180px] cursor-pointer">
-                    <option value="all">Todas las facturas</option>
+                    <option value="all">Todas las activas</option>
                     <option value="dispatch">Despacho</option>
                     <option value="abono">Abono</option>
                     <option value="saldo_actual">Saldo Actual</option>
@@ -186,6 +190,38 @@
                                 <option value="pending">Pendiente</option>
                                 <option value="late">Vencida</option>
                             </select>
+                            <label class="mt-2 inline-flex items-center gap-2 text-xs text-gray-600">
+                                <input type="checkbox" id="estadoManualLock" class="h-4 w-4 border border-gray-300 rounded">
+                                <span>Mantener estado manual</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Abono</label>
+                            <input type="number" id="abono" min="0" step="0.01" value="0" class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-gray-900 transition-colors" placeholder="0.00" oninput="calculateTotals()">
+                        </div>
+                        <div id="saldoActualWrapper" class="hidden">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Saldo Actual</label>
+                            <div class="invoice-saldo-box w-full px-3 py-2 rounded-md text-sm font-semibold">
+                                <span class="invoice-saldo-currency">$</span> <span id="saldoActualAmount">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="statusExtras" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div id="dispatchWrapper" class="hidden sm:col-span-2">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Detalle de despacho</label>
+                            <input type="text" id="detalleDespacho" class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-gray-900 transition-colors" placeholder="Ej: Entrega en bodega central">
+                        </div>
+                        <div id="dueDateWrapper">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Fecha de vencimiento</label>
+                            <input type="date" id="fechaVencimiento" class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-gray-900 transition-colors">
+                        </div>
+                        <div id="paidDateWrapper" class="hidden">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Fecha de pago</label>
+                            <input type="date" id="fechaPago" class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-gray-900 transition-colors">
                         </div>
                     </div>
 
@@ -304,6 +340,71 @@
         })();
 
         let currentUser = null;
+        const PAGE_VIEW = new URLSearchParams(window.location.search).get('view') === 'history' ? 'history' : 'active';
+        const IS_HISTORY_VIEW = PAGE_VIEW === 'history';
+
+        function isPaidInvoiceStatus(status) {
+            const normalized = String(status || '').toLowerCase();
+            return normalized === 'paid' || normalized === 'pagada' || normalized === 'pagadas';
+        }
+
+        function configurePageModeUI() {
+            const historyBtn = document.getElementById('btnHistoryView');
+            const historyBtnLabel = historyBtn ? historyBtn.querySelector('span') : null;
+            const historyBtnIcon = historyBtn ? historyBtn.querySelector('svg') : null;
+            const listTitle = document.getElementById('invoiceListTitle');
+            const newInvoiceBtn = document.getElementById('btnNewInvoice');
+            const filterSelect = document.getElementById('filterSelect');
+            const searchInput = document.getElementById('searchInput');
+
+            if (historyBtn) {
+                if (IS_HISTORY_VIEW) {
+                    if (historyBtnLabel) historyBtnLabel.textContent = 'Volver a activas';
+                    else historyBtn.textContent = 'Volver a activas';
+                    if (historyBtnIcon) {
+                        historyBtnIcon.innerHTML = '<line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>';
+                    }
+                    historyBtn.href = 'index.html';
+                } else {
+                    if (historyBtnLabel) historyBtnLabel.textContent = 'Historial pagadas';
+                    else historyBtn.textContent = 'Historial pagadas';
+                    if (historyBtnIcon) {
+                        historyBtnIcon.innerHTML = '<path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle>';
+                    }
+                    historyBtn.href = 'pages/historial.html';
+                }
+            }
+
+            if (listTitle) {
+                listTitle.textContent = IS_HISTORY_VIEW ? 'Historial de Pagadas' : 'Facturas Activas';
+            }
+
+            if (newInvoiceBtn && IS_HISTORY_VIEW) {
+                newInvoiceBtn.classList.add('hidden');
+            }
+
+            if (searchInput) {
+                searchInput.placeholder = IS_HISTORY_VIEW ? 'Buscar facturas pagadas...' : 'Buscar facturas activas...';
+            }
+
+            if (filterSelect) {
+                const allOption = filterSelect.querySelector('option[value="all"]');
+                const paidOption = filterSelect.querySelector('option[value="paid"]');
+
+                if (IS_HISTORY_VIEW) {
+                    if (allOption) allOption.textContent = 'Todas las pagadas';
+                    Array.from(filterSelect.options).forEach((opt) => {
+                        if (opt.value !== 'all' && opt.value !== 'paid') opt.remove();
+                    });
+                    if (paidOption) paidOption.textContent = 'Pagada al 100%';
+                } else {
+                    if (allOption) allOption.textContent = 'Todas las activas';
+                    if (paidOption) paidOption.remove();
+                }
+
+                filterSelect.value = 'all';
+            }
+        }
 
         function loadCurrentUser() {
             try {
@@ -362,8 +463,11 @@
 
         function filterInvoicesByVisibility(list) {
             if (!currentUser || !Array.isArray(list)) return [];
-            if (currentUser.role === 'admin') return list;
-            return list.filter(inv => isInvoiceOwner(inv));
+            const baseList = currentUser.role === 'admin' ? list : list.filter(inv => isInvoiceOwner(inv));
+            if (IS_HISTORY_VIEW) {
+                return baseList.filter(inv => isPaidInvoiceStatus(inv && inv.status));
+            }
+            return baseList.filter(inv => !isPaidInvoiceStatus(inv && inv.status));
         }
 
         function ensureCanCreateInvoices() {
@@ -410,6 +514,7 @@
                 currentUser = current;
                 // Mostrar email en navbar si existe el elemento
                 document.addEventListener('DOMContentLoaded', () => {
+                    configurePageModeUI();
                     const el = document.getElementById('currentUserEmail');
                     if (el) el.textContent = current.email;
 
@@ -426,9 +531,9 @@
                             if (current && current.role === 'admin') {
                                 const btn = document.createElement('button');
                                 btn.id = 'btnAdminPanel';
-                                btn.className = 'admin-users-btn px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors';
+                                btn.className = 'admin-users-btn px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2';
                                 btn.style.marginRight = '6px';
-                                btn.textContent = 'Usuarios';
+                                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg><span>Usuarios</span>';
                                 btn.onclick = () => { window.location.href = 'pages/admin.html'; };
                                 adminContainer.appendChild(btn);
                             }
@@ -536,7 +641,12 @@
                 numero: document.getElementById('numero').value,
                 cliente: document.getElementById('cliente').value || '',
                 direccion: document.getElementById('direccion').value || '',
+                abono: document.getElementById('abono').value || '0',
+                detalleDespacho: document.getElementById('detalleDespacho').value || '',
+                fechaVencimiento: document.getElementById('fechaVencimiento').value || '',
+                fechaPago: document.getElementById('fechaPago').value || '',
                 estado: document.getElementById('estado').value || 'pending',
+                estadoManualLock: document.getElementById('estadoManualLock')?.checked || false,
                 items: rows.map((row) => ({
                     cant: row.querySelector('.item-cant')?.value || '1',
                     desc: row.querySelector('.item-desc')?.value || '',
@@ -548,12 +658,15 @@
         function hasMeaningfulDraftData(draft) {
             if (!draft) return false;
             const hasClientData = !!String(draft.cliente || '').trim() || !!String(draft.direccion || '').trim();
+            const hasAbonoData = (parseFloat(draft.abono) || 0) > 0;
+            const hasStatusLock = !!draft.estadoManualLock;
+            const hasStatusDetails = !!String(draft.detalleDespacho || '').trim() || !!String(draft.fechaVencimiento || '').trim() || !!String(draft.fechaPago || '').trim();
             const hasItemsData = Array.isArray(draft.items) && draft.items.some((item) => {
                 const desc = String(item.desc || '').trim();
                 const precio = String(item.precio || '').trim();
                 return desc.length > 0 || (precio.length > 0 && precio !== '0' && precio !== '0.00');
             });
-            return hasClientData || hasItemsData;
+            return hasClientData || hasItemsData || hasAbonoData || hasStatusDetails || hasStatusLock;
         }
 
         function saveDraftNow() {
@@ -595,7 +708,12 @@
                 document.getElementById('numero').value = draft.numero || document.getElementById('numero').value;
                 document.getElementById('cliente').value = draft.cliente || '';
                 document.getElementById('direccion').value = draft.direccion || '';
+                document.getElementById('abono').value = draft.abono || '0';
+                document.getElementById('detalleDespacho').value = draft.detalleDespacho || '';
+                document.getElementById('fechaVencimiento').value = draft.fechaVencimiento || '';
+                document.getElementById('fechaPago').value = draft.fechaPago || '';
                 document.getElementById('estado').value = draft.estado || 'pending';
+                document.getElementById('estadoManualLock').checked = !!draft.estadoManualLock;
 
                 if (Array.isArray(draft.items) && draft.items.length > 0) {
                     const tbody = document.getElementById('itemsTableBody');
@@ -632,6 +750,7 @@
 
                 renumberItemRows();
                 syncAllItemDescHeights();
+                updateStatusSections(document.getElementById('estado').value);
                 calculateTotals();
                 showToast('Borrador restaurado', 'info', 1600, 'top-end', { toastType: 'success' });
             } catch (error) {
@@ -695,7 +814,13 @@
             // Limpiar solo los campos específicos en lugar de hacer reset completo
             document.getElementById('cliente').value = '';
             document.getElementById('direccion').value = '';
+            document.getElementById('abono').value = '0';
+            document.getElementById('detalleDespacho').value = '';
+            document.getElementById('fechaVencimiento').value = '';
+            document.getElementById('fechaPago').value = '';
             document.getElementById('estado').value = 'pending';
+            document.getElementById('estadoManualLock').checked = false;
+            updateStatusSections('pending');
             resetItemsTable();
             calculateTotals();
             restoreDraftIfExists();
@@ -858,6 +983,107 @@
             document.querySelectorAll('.item-desc-area').forEach(autoResizeItemDesc);
         }
 
+        function getTodayISODate() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function updateStatusSections(statusValue) {
+            const status = String(statusValue || '').toLowerCase();
+            const dispatchWrapper = document.getElementById('dispatchWrapper');
+            const dueDateWrapper = document.getElementById('dueDateWrapper');
+            const paidDateWrapper = document.getElementById('paidDateWrapper');
+
+            if (dispatchWrapper) dispatchWrapper.classList.toggle('hidden', status !== 'dispatch');
+            if (dueDateWrapper) dueDateWrapper.classList.remove('hidden');
+            if (paidDateWrapper) paidDateWrapper.classList.toggle('hidden', status !== 'paid');
+        }
+
+        function getPaymentSummary(totalValue) {
+            const total = Math.max(0, Number(totalValue) || 0);
+            const abonoInput = document.getElementById('abono');
+            const abonoRaw = abonoInput ? (parseFloat(abonoInput.value) || 0) : 0;
+            const abono = Math.max(0, abonoRaw);
+            const abonoAplicado = Math.min(abono, total);
+            const saldoActual = Math.max(0, total - abonoAplicado);
+            const hasAbono = abono > 0;
+
+            return { total, abono, abonoAplicado, saldoActual, hasAbono };
+        }
+
+        function resolveStatusByBusinessRules(options = {}) {
+            const total = Math.max(0, Number(options.total) || 0);
+            const abonoAplicado = Math.max(0, Number(options.abonoAplicado) || 0);
+            const selectedStatus = String(options.selectedStatus || 'pending').toLowerCase();
+            const dueDate = String(options.dueDate || '').trim();
+            const today = getTodayISODate();
+            const estadoManualLock = !!options.estadoManualLock;
+
+            if (estadoManualLock) return selectedStatus || 'pending';
+
+            if (selectedStatus === 'dispatch') return 'dispatch';
+            if (selectedStatus === 'paid') return 'paid';
+            if (total > 0 && abonoAplicado >= total) return 'paid';
+            if (total > 0 && abonoAplicado > 0) return 'saldo_actual';
+
+            if (selectedStatus === 'abono' || selectedStatus === 'saldo_actual') return 'pending';
+
+            if (selectedStatus === 'late') {
+                if (dueDate && dueDate >= today) return 'pending';
+                return 'late';
+            }
+
+            if (selectedStatus === 'pending') {
+                if (dueDate && dueDate < today) return 'late';
+                return 'pending';
+            }
+
+            return 'pending';
+        }
+
+        function updatePaymentDerivedUI(payment) {
+            const saldoWrapper = document.getElementById('saldoActualWrapper');
+            const saldoAmount = document.getElementById('saldoActualAmount');
+            const abonoInput = document.getElementById('abono');
+            if (saldoWrapper && saldoAmount) {
+                saldoAmount.textContent = payment.saldoActual.toFixed(2);
+                saldoWrapper.classList.toggle('hidden', !payment.hasAbono);
+            }
+
+            const estadoEl = document.getElementById('estado');
+            if (!estadoEl) return;
+
+            const currentStatus = estadoEl.value || 'pending';
+            const dueDate = document.getElementById('fechaVencimiento')?.value || '';
+            const estadoManualLock = document.getElementById('estadoManualLock')?.checked || false;
+            const resolvedStatus = resolveStatusByBusinessRules({
+                total: payment.total,
+                abonoAplicado: payment.abonoAplicado,
+                selectedStatus: currentStatus,
+                dueDate,
+                estadoManualLock
+            });
+
+            if (resolvedStatus && resolvedStatus !== currentStatus) {
+                estadoEl.value = resolvedStatus;
+            }
+
+            if (estadoEl.value === 'paid') {
+                if (abonoInput) {
+                    abonoInput.value = payment.total.toFixed(2);
+                }
+                if (saldoWrapper && saldoAmount) {
+                    saldoAmount.textContent = '0.00';
+                    saldoWrapper.classList.add('hidden');
+                }
+            }
+
+            updateStatusSections(estadoEl.value);
+        }
+
         function calculateTotals() {
             const rows = document.querySelectorAll('#itemsTableBody tr');
             let total = 0;
@@ -871,6 +1097,8 @@
             });
             
             document.getElementById('totalAmount').textContent = total.toFixed(2);
+            const payment = getPaymentSummary(total);
+            updatePaymentDerivedUI(payment);
             scheduleDraftSave();
         }
 
@@ -885,7 +1113,7 @@
             const cliente = document.getElementById('cliente').value.trim();
             
             const errors = [];
-            const clearIds = ['dia', 'mes', 'anio', 'numero', 'cliente', 'estado'];
+            const clearIds = ['dia', 'mes', 'anio', 'numero', 'cliente', 'estado', 'abono', 'detalleDespacho', 'fechaVencimiento', 'fechaPago'];
             clearIds.forEach(id => document.getElementById(id).classList.remove('input-error'));
 
             const addError = (id, message) => {
@@ -923,6 +1151,22 @@
             const estado = document.getElementById('estado').value;
             if (!estado) {
                 addError('estado', 'Estado requerido');
+            }
+
+            const detalleDespacho = document.getElementById('detalleDespacho').value.trim();
+            const fechaVencimiento = document.getElementById('fechaVencimiento').value;
+            const fechaPago = document.getElementById('fechaPago').value;
+
+            if (estado === 'dispatch' && !detalleDespacho) {
+                addError('detalleDespacho', 'Detalle de despacho requerido para estado Despacho');
+            }
+
+            if ((estado === 'pending' || estado === 'late') && !fechaVencimiento) {
+                addError('fechaVencimiento', 'Fecha de vencimiento requerida para estado Pendiente/Vencida');
+            }
+
+            if (estado === 'paid' && !fechaPago) {
+                addError('fechaPago', 'Fecha de pago requerida para estado Pagada');
             }
 
             const rows = document.querySelectorAll('#itemsTableBody tr');
@@ -966,6 +1210,15 @@
                 errors.push('Agregue al menos un item completo');
             }
 
+            const totalValue = parseFloat(document.getElementById('totalAmount').textContent) || 0;
+            const abonoValue = parseFloat(document.getElementById('abono').value) || 0;
+            if (abonoValue < 0) {
+                addError('abono', 'El abono no puede ser negativo');
+            }
+            if (abonoValue > totalValue) {
+                addError('abono', 'El abono no puede ser mayor al total de la factura');
+            }
+
             if (errors.length) {
                 Swal.fire({
                     icon: 'error',
@@ -982,7 +1235,34 @@
         async function saveInvoice() {
             if (!ensureCanCreateInvoices()) return;
             const total = parseFloat(document.getElementById('totalAmount').textContent);
+            const payment = getPaymentSummary(total);
             const selectedStatus = document.getElementById('estado').value;
+            const estadoManualLock = document.getElementById('estadoManualLock').checked;
+            const dueDate = document.getElementById('fechaVencimiento').value || '';
+            const paidDateInput = document.getElementById('fechaPago').value || '';
+            const dispatchDetailInput = document.getElementById('detalleDespacho').value.trim();
+
+            const statusToSave = resolveStatusByBusinessRules({
+                total: payment.total,
+                abonoAplicado: payment.abonoAplicado,
+                selectedStatus,
+                dueDate,
+                estadoManualLock
+            });
+
+            const paymentToSave = statusToSave === 'paid'
+                ? {
+                    ...payment,
+                    abono: payment.total,
+                    abonoAplicado: payment.total,
+                    saldoActual: 0,
+                    hasAbono: payment.total > 0
+                }
+                : payment;
+
+            const dispatchDetail = statusToSave === 'dispatch' ? dispatchDetailInput : '';
+            const paidDate = statusToSave === 'paid' ? (paidDateInput || getTodayISODate()) : '';
+            const dueDateToSave = dueDate;
 
             if (editingId) {
                 const existing = invoices.find(inv => inv.id === editingId);
@@ -1010,7 +1290,13 @@
                         client: document.getElementById('cliente').value,
                         date: `${document.getElementById('anio').value}-${String(document.getElementById('mes').value).padStart(2, '0')}-${String(document.getElementById('dia').value).padStart(2, '0')}`,
                         amount: total,
-                        status: selectedStatus,
+                        status: statusToSave,
+                        abono: paymentToSave.abono,
+                        saldoActual: paymentToSave.saldoActual,
+                        manualStatusLocked: estadoManualLock,
+                        dispatchDetail,
+                        dueDate: dueDateToSave,
+                        paidDate,
                         address: document.getElementById('direccion').value,
                         items: items,
                         createdByEmail: invoices[invoiceIndex].createdByEmail || (currentUser ? currentUser.email : null)
@@ -1038,7 +1324,13 @@
                     client: document.getElementById('cliente').value,
                     date: `${document.getElementById('anio').value}-${String(document.getElementById('mes').value).padStart(2, '0')}-${String(document.getElementById('dia').value).padStart(2, '0')}`,
                     amount: total,
-                    status: selectedStatus,
+                    status: statusToSave,
+                    abono: paymentToSave.abono,
+                    saldoActual: paymentToSave.saldoActual,
+                    manualStatusLocked: estadoManualLock,
+                    dispatchDetail,
+                    dueDate: dueDateToSave,
+                    paidDate,
                     address: document.getElementById('direccion').value,
                     items: items,
                     createdByEmail: currentUser ? currentUser.email : null
@@ -1074,13 +1366,15 @@
             let filtered = filterInvoicesByStatus(visible, currentFilter);
             filtered = sortInvoicesDescById(filtered);
             
-            totalCount.textContent = `${filtered.length} total`;
+            totalCount.textContent = IS_HISTORY_VIEW ? `${filtered.length} pagadas` : `${filtered.length} activas`;
             
             if (visible.length === 0) {
                 emptyState.classList.remove('hidden');
                 listContainer.classList.add('hidden');
                 paginationContainer.classList.add('hidden');
-                emptyState.innerHTML = `<p class="text-gray-500 text-base">Aún no hay facturas. Crea una factura para comenzar</p>`;
+                emptyState.innerHTML = IS_HISTORY_VIEW
+                    ? `<p class="text-gray-500 text-base">Aún no hay facturas pagadas en el historial</p>`
+                    : `<p class="text-gray-500 text-base">Aún no hay facturas activas. Crea una factura para comenzar</p>`;
                 return;
             }
             
@@ -1089,7 +1383,9 @@
                 listContainer.classList.add('hidden');
                 paginationContainer.classList.add('hidden');
                 if (currentFilter === 'all') {
-                    emptyState.innerHTML = `<p class="text-gray-500 text-base">Todas las facturas han sido eliminadas</p>`;
+                    emptyState.innerHTML = IS_HISTORY_VIEW
+                        ? `<p class="text-gray-500 text-base">No hay facturas pagadas para mostrar</p>`
+                        : `<p class="text-gray-500 text-base">No hay facturas activas para mostrar</p>`;
                 } else {
                     emptyState.innerHTML = `<p class="text-gray-500 text-base">No hay facturas con estado "${getStatusText(currentFilter)}"</p>`;
                 }
@@ -1118,15 +1414,33 @@
         function renderInvoiceCard(inv, canDelete, withTitle = false) {
             if (!canViewInvoice(inv)) return '';
             const statusClass = getStatusClass(inv.status);
-            const statusText = getStatusText(inv.status);
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            const statusText = normalizedStatus === 'paid' ? 'Pagada al 100%' : getStatusText(inv.status);
             const canViewAmount = canSeeInvoiceAmount(inv);
             const amountText = canViewAmount ? `$${inv.amount.toFixed(2)}` : 'Monto oculto';
+            const abonoValue = Number(inv.abono || 0);
+            const saldoValue = Number.isFinite(Number(inv.saldoActual))
+                ? Math.max(0, Number(inv.saldoActual))
+                : Math.max(0, Number(inv.amount || 0) - abonoValue);
+            const saldoHtml = (canViewAmount && abonoValue > 0 && String(inv.status || '').toLowerCase() !== 'paid')
+                ? `<p class="text-xs text-gray-500 mt-1">SALDO ACTUAL: $${saldoValue.toFixed(2)}</p>`
+                : '';
+            const dueDateHtml = inv.dueDate ? `<p class="text-xs text-gray-500 mt-1">VENCE: ${inv.dueDate}</p>` : '';
+            const paidDateHtml = inv.paidDate ? `<p class="text-xs text-gray-500 mt-1">PAGADA: ${inv.paidDate}</p>` : '';
+            const dispatchHtml = inv.dispatchDetail ? `<p class="text-xs text-gray-500 mt-1">DESPACHO: ${inv.dispatchDetail}</p>` : '';
+            const manualStatusHtml = inv.manualStatusLocked
+                ? '<p class="text-xs italic text-gray-500 mb-2">Estado manual</p>'
+                : '';
+            const statusDetailHtml = inv.status === 'dispatch'
+                ? dispatchHtml
+                : (inv.status === 'paid' ? paidDateHtml : dueDateHtml);
             const viewTitle = withTitle ? ' title="Ver"' : '';
             const editTitle = withTitle ? ' title="Editar"' : '';
             const deleteTitle = withTitle ? ' title="Eliminar"' : '';
 
             return `
             <div class="invoice-card bg-white border border-gray-200 rounded-lg p-5 relative">
+                ${manualStatusHtml}
                 <div class="flex justify-end gap-3 mb-2">
                     <button onclick="viewInvoice(${inv.id})" class="text-gray-400 hover:text-gray-600 transition-colors"${viewTitle}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -1148,7 +1462,11 @@
                     ${getInvoiceOwnershipBadge(inv)}
                 </div>
                 <div class="flex justify-between items-end">
-                    <span class="text-2xl font-bold text-gray-900">${amountText}</span>
+                    <div>
+                        <span class="text-2xl font-bold text-gray-900">${amountText}</span>
+                        ${saldoHtml}
+                        ${statusDetailHtml}
+                    </div>
                     <div class="flex items-center gap-6"></div>
                 </div>
                 <span class="status-badge ${statusClass} absolute bottom-3 right-3">${statusText}</span>
@@ -1219,7 +1537,17 @@
             const pageWidth = doc.internal.pageSize.getWidth();
             const left = 48;
             const right = pageWidth - 48;
-            const statusClass = getStatusClass(inv.status);
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            const statusTextForPdf = normalizedStatus === 'paid' ? 'Pagada al 100%' : getStatusText(inv.status);
+            const statusColorMap = {
+                dispatch: [30, 64, 175],
+                paid: [6, 95, 70],
+                pending: [146, 64, 14],
+                late: [153, 27, 27],
+                abono: [21, 94, 117],
+                saldo_actual: [91, 33, 182]
+            };
+            const statusColor = statusColorMap[normalizedStatus] || [17, 24, 39];
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(28);
@@ -1247,9 +1575,9 @@
             y += 20;
             doc.setFont('helvetica', 'bold');
             doc.text('Estado:', left, y);
-            doc.setTextColor(statusChip.color);
+            doc.setTextColor(...statusColor);
             doc.setFont('helvetica', 'bold');
-            doc.text(statusChip.text, left + 50, y);
+            doc.text(statusTextForPdf, left + 50, y);
             doc.setTextColor(17, 17, 17);
 
             const bodyRows = (inv.items || []).map(item => {
@@ -1290,7 +1618,8 @@
 
         function previewInvoicePdf(inv, canViewAmount) {
             if (!ensureCanViewInvoice(inv)) return;
-            const statusText = getStatusText(inv.status);
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            const statusText = normalizedStatus === 'paid' ? 'Pagada al 100%' : getStatusText(inv.status);
             const addressText = canViewAmount ? (inv.address || 'N/A') : 'Oculta';
             const totalText = canViewAmount ? `$${Number(inv.amount || 0).toFixed(2)}` : 'Oculto';
             const totalFinalText = canViewAmount ? `$${Number(inv.amount || 0).toFixed(2)}` : 'Oculto';
@@ -1522,8 +1851,20 @@
             const inv = invoices.find(i => i.id === id);
             if (!inv) return;
             if (!ensureCanViewInvoice(inv)) return;
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            const statusText = normalizedStatus === 'paid' ? 'Pagada al 100%' : getStatusText(inv.status);
             const canViewAmount = canSeeInvoiceAmount(inv);
             const addressText = canViewAmount ? (inv.address || 'N/A') : 'Oculta';
+            const abonoText = canViewAmount ? `$${Number(inv.abono || 0).toFixed(2)}` : 'Oculto';
+            const saldoText = canViewAmount
+                ? `$${Math.max(0, Number.isFinite(Number(inv.saldoActual)) ? Number(inv.saldoActual) : (Number(inv.amount || 0) - Number(inv.abono || 0))).toFixed(2)}`
+                : 'Oculto';
+            const paymentMeta = normalizedStatus === 'paid'
+                ? '<p><strong>Pago:</strong> Pagada al 100%</p>'
+                : `<p><strong>Abono:</strong> ${abonoText}</p><p><strong>Saldo actual:</strong> ${saldoText}</p>`;
+            const dueDateMeta = inv.dueDate ? `<p><strong>Vencimiento:</strong> ${inv.dueDate}</p>` : '';
+            const paidDateMeta = inv.paidDate ? `<p><strong>Fecha de pago:</strong> ${inv.paidDate}</p>` : '';
+            const dispatchMeta = inv.dispatchDetail ? `<p><strong>Despacho:</strong> ${inv.dispatchDetail}</p>` : '';
 
             let itemsHtml = '<table class="w-full text-sm border-collapse"><tr class="border-b"><th class="text-left p-2">Cant.</th><th class="text-left p-2">Descripción</th><th class="text-left p-2">Precio</th><th class="text-right p-2">Total</th></tr>';
             
@@ -1546,7 +1887,11 @@
                             <p><strong>Cliente:</strong> ${inv.client}</p>
                             <p><strong>Dirección:</strong> ${addressText}</p>
                             <p><strong>Fecha:</strong> ${inv.date}</p>
-                            <p><strong>Estado:</strong> ${getStatusText(inv.status)}</p>
+                            <p><strong>Estado:</strong> ${statusText}</p>
+                            ${paymentMeta}
+                            ${dueDateMeta}
+                            ${paidDateMeta}
+                            ${dispatchMeta}
                         </div>
                         <div class="invoice-modal-items">
                             ${itemsHtml}
@@ -1599,6 +1944,11 @@
             document.getElementById('numero').value = inv.number;
             document.getElementById('cliente').value = inv.client;
             document.getElementById('direccion').value = inv.address || '';
+            document.getElementById('abono').value = Number(inv.abono || 0).toFixed(2);
+            document.getElementById('detalleDespacho').value = inv.dispatchDetail || '';
+            document.getElementById('fechaVencimiento').value = inv.dueDate || '';
+            document.getElementById('fechaPago').value = inv.paidDate || '';
+            document.getElementById('estadoManualLock').checked = !!inv.manualStatusLocked;
             
             const legacyToCanonicalStatus = {
                 pagada: 'paid',
@@ -1654,6 +2004,7 @@
             document.querySelector('.invoiceFormTitle').textContent = 'Editar Factura';
             document.getElementById('submitBtn').textContent = 'Guardar cambios';
             
+            updateStatusSections(document.getElementById('estado').value);
             calculateTotals();
         }
 
@@ -1753,6 +2104,27 @@
             scheduleDraftSave();
         });
 
+        document.getElementById('estado').addEventListener('change', function(e) {
+            updateStatusSections(e.target.value);
+            calculateTotals();
+        });
+
+        document.getElementById('estadoManualLock').addEventListener('change', function() {
+            calculateTotals();
+        });
+
+        document.getElementById('fechaVencimiento').addEventListener('change', function() {
+            calculateTotals();
+        });
+
+        document.getElementById('fechaPago').addEventListener('change', function() {
+            scheduleDraftSave();
+        });
+
+        document.getElementById('detalleDespacho').addEventListener('input', function() {
+            scheduleDraftSave();
+        });
+
         function renderSearchResults(filtered) {
             const listContainer = document.getElementById('invoiceList');
             const paginationContainer = document.getElementById('paginationContainer');
@@ -1797,6 +2169,9 @@
 
         // Inicializar Dark Mode al cargar la página
         initDarkMode({ respectSystem: true });
+
+        // Inicializar apartados dinámicos por estado
+        updateStatusSections(document.getElementById('estado').value || 'pending');
 
         // Inicializar el select de filtro
         document.getElementById('filterSelect').value = 'all';
