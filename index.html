@@ -81,6 +81,15 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg>
                 <span>Historial pagadas</span>
             </a>
+            <button id="btnBackupExport" type="button" class="backup-nav-btn bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Exportar</span>
+            </button>
+            <button id="btnBackupImport" type="button" class="backup-nav-btn bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Importar</span>
+            </button>
+            <input id="backupImportInput" type="file" accept="application/json" class="hidden">
             <div id="adminPanelBtnContainer"></div>
         </div>
         <div class="flex items-center gap-6">
@@ -108,6 +117,12 @@
                 <div class="flex items-center gap-4">
                     <span class="text-sm text-gray-500" id="totalCount">0 total</span>
                 </div>
+            </div>
+
+            <div id="operationalAlerts" class="operational-alerts hidden mb-4">
+                <div class="op-alert-chip op-alert-overdue">Vencidas: <strong id="alertOverdueCount">0</strong></div>
+                <div class="op-alert-chip op-alert-today">Vencen hoy: <strong id="alertTodayCount">0</strong></div>
+                <div class="op-alert-chip op-alert-soon">Próx. 3 días: <strong id="alertSoonCount">0</strong></div>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mb-8">
@@ -303,10 +318,272 @@
             iconColor: '#16a34a'
         };
 
+        const BACKUP_REMINDER_LAST_KEY = 'lastBackupReminderAt';
+        const BACKUP_LAST_EXPORT_KEY = 'lastBackupExportAt';
+        const BACKUP_REMINDER_INTERVAL_MS = 1000 * 60 * 60 * 24;
+
         function normalizeInvoices(rawInvoices) {
-            if (Array.isArray(rawInvoices)) return rawInvoices.filter(Boolean);
-            if (rawInvoices && typeof rawInvoices === 'object') return Object.values(rawInvoices);
-            return [];
+            const list = Array.isArray(rawInvoices)
+                ? rawInvoices.filter(Boolean)
+                : (rawInvoices && typeof rawInvoices === 'object' ? Object.values(rawInvoices) : []);
+
+            return list
+                .map(normalizeInvoiceRecord)
+                .filter(Boolean);
+        }
+
+        function normalizeInvoiceRecord(record) {
+            if (!record || typeof record !== 'object') return null;
+            const parsedId = Number(record.id);
+            if (!Number.isFinite(parsedId)) return null;
+
+            const items = Array.isArray(record.items)
+                ? record.items
+                    .filter(Boolean)
+                    .map((item) => {
+                        const quantity = Math.max(0, Number(item.cant || 0));
+                        const price = Math.max(0, Number(item.precio || 0));
+                        return {
+                            desc: String(item.desc || '').trim(),
+                            cant: quantity,
+                            precio: price,
+                            total: Math.max(0, Number(item.total || quantity * price))
+                        };
+                    })
+                : [];
+
+            const changeLog = Array.isArray(record.changeLog)
+                ? record.changeLog.filter(Boolean).slice(-25)
+                : [];
+
+            return {
+                ...record,
+                id: parsedId,
+                number: String(record.number || ''),
+                client: String(record.client || '').trim(),
+                date: String(record.date || ''),
+                amount: Math.max(0, Number(record.amount || 0)),
+                status: String(record.status || 'pending').toLowerCase(),
+                abono: Math.max(0, Number(record.abono || 0)),
+                saldoActual: Math.max(0, Number(record.saldoActual || 0)),
+                dispatchDetail: String(record.dispatchDetail || '').trim(),
+                dueDate: String(record.dueDate || '').trim(),
+                paidDate: String(record.paidDate || '').trim(),
+                address: String(record.address || '').trim(),
+                items,
+                createdByEmail: record.createdByEmail || '',
+                createdAt: record.createdAt || '',
+                updatedByEmail: record.updatedByEmail || '',
+                updatedAt: record.updatedAt || '',
+                changeLog
+            };
+        }
+
+        function toInvoicesMap(invoiceList) {
+            const map = {};
+            normalizeInvoices(invoiceList).forEach((invoice) => {
+                map[String(invoice.id)] = invoice;
+            });
+            return map;
+        }
+
+        function createAuditEntry(action, invoiceRef = null) {
+            const nowIso = new Date().toISOString();
+            return {
+                action,
+                at: nowIso,
+                byEmail: currentUser?.email || 'desconocido',
+                byRole: currentUser?.role || 'unknown',
+                invoiceId: invoiceRef?.id || null,
+                invoiceNumber: invoiceRef?.number || null,
+                invoiceStatus: invoiceRef?.status || null
+            };
+        }
+
+        function appendChangeLog(existingLog, entry) {
+            const safeLog = Array.isArray(existingLog) ? [...existingLog] : [];
+            safeLog.push(entry);
+            return safeLog.slice(-25);
+        }
+
+        async function saveAdminAuditRecord(entry) {
+            const key = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            await setFirebaseData(`adminAudit/${key}`, entry);
+        }
+
+        function getDateDiffFromToday(isoDate) {
+            const raw = String(isoDate || '').trim();
+            if (!raw) return null;
+            const due = new Date(`${raw}T00:00:00`);
+            if (Number.isNaN(due.getTime())) return null;
+
+            const todayRaw = getTodayISODate();
+            const today = new Date(`${todayRaw}T00:00:00`);
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.round((due.getTime() - today.getTime()) / oneDay);
+        }
+
+        function updateOperationalAlerts(invoiceList) {
+            const container = document.getElementById('operationalAlerts');
+            if (!container) return;
+
+            if (IS_HISTORY_VIEW) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            const visibleInvoices = Array.isArray(invoiceList) ? invoiceList : [];
+            let overdueCount = 0;
+            let todayCount = 0;
+            let soonCount = 0;
+
+            visibleInvoices.forEach((invoice) => {
+                const normalizedStatus = String(invoice?.status || '').toLowerCase();
+                if (normalizedStatus === 'paid') return;
+
+                const diffDays = getDateDiffFromToday(invoice?.dueDate);
+                if (diffDays === null) return;
+
+                if (diffDays < 0 || normalizedStatus === 'late' || normalizedStatus === 'vencida') {
+                    overdueCount += 1;
+                    return;
+                }
+
+                if (diffDays === 0) {
+                    todayCount += 1;
+                    return;
+                }
+
+                if (diffDays > 0 && diffDays <= 3) {
+                    soonCount += 1;
+                }
+            });
+
+            const overdueEl = document.getElementById('alertOverdueCount');
+            const todayEl = document.getElementById('alertTodayCount');
+            const soonEl = document.getElementById('alertSoonCount');
+            if (overdueEl) overdueEl.textContent = String(overdueCount);
+            if (todayEl) todayEl.textContent = String(todayCount);
+            if (soonEl) soonEl.textContent = String(soonCount);
+
+            const hasAlerts = overdueCount > 0 || todayCount > 0 || soonCount > 0;
+            container.classList.toggle('hidden', !hasAlerts);
+        }
+
+        function maybeNotifyBackupReminder(force = false) {
+            const now = Date.now();
+            const last = Number(localStorage.getItem(BACKUP_REMINDER_LAST_KEY) || 0);
+            if (!force && now - last < BACKUP_REMINDER_INTERVAL_MS) return;
+
+            localStorage.setItem(BACKUP_REMINDER_LAST_KEY, String(now));
+
+            if (window.showToast) {
+                showToast('Recordatorio: realiza una copia de seguridad manual (Exportar)', 'warning', 3200, 'top-end', { toastType: 'warning' });
+            }
+        }
+
+        function getLastBackupExportLabel() {
+            const raw = localStorage.getItem(BACKUP_LAST_EXPORT_KEY);
+            if (!raw) return 'Aún no has exportado una copia de seguridad.';
+            return `Último respaldo exportado: ${formatDateTimeSV(raw)}`;
+        }
+
+        function exportInvoicesBackup() {
+            if (!ensureAdminAction('el respaldo manual')) return;
+            const exportedAt = new Date().toISOString();
+            const payload = {
+                metadata: {
+                    exportedAt,
+                    exportedBy: currentUser?.email || 'desconocido',
+                    totalInvoices: Array.isArray(invoices) ? invoices.length : 0,
+                    app: 'FacturacionElectronica'
+                },
+                invoices: toInvoicesMap(invoices)
+            };
+
+            const fileContent = JSON.stringify(payload, null, 2);
+            const blob = new Blob([fileContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            anchor.href = url;
+            anchor.download = `backup-facturas-${timestamp}.json`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(url);
+
+            showToast('Copia de seguridad exportada', 'success', 2000, 'top-end', { toastType: 'success' });
+            localStorage.setItem(BACKUP_REMINDER_LAST_KEY, String(Date.now()));
+            localStorage.setItem(BACKUP_LAST_EXPORT_KEY, exportedAt);
+        }
+
+        async function importInvoicesBackupFile(file) {
+            if (!ensureAdminAction('la importación de respaldo')) return;
+            if (!file) return;
+            const text = await file.text();
+            let parsed;
+
+            try {
+                parsed = JSON.parse(text);
+            } catch {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo inválido',
+                    text: 'El JSON del respaldo no es válido.',
+                    confirmButtonColor: '#1a1a1a'
+                });
+                return;
+            }
+
+            const incomingSource = parsed?.invoices ?? parsed;
+            const normalizedIncoming = normalizeInvoices(incomingSource);
+            if (!normalizedIncoming.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin facturas válidas',
+                    text: 'El respaldo no contiene facturas válidas para importar.',
+                    confirmButtonColor: '#1a1a1a'
+                });
+                return;
+            }
+
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: '¿Importar respaldo? ',
+                html: `<p>Se reemplazarán las facturas actuales por <strong>${normalizedIncoming.length}</strong> facturas del archivo.</p>`,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, importar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#1a1a1a'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const invoicesMap = toInvoicesMap(normalizedIncoming);
+            const ok = await setFirebaseData('invoices', invoicesMap);
+            if (!ok) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se pudo importar',
+                    text: 'Firebase rechazó la importación del respaldo.',
+                    confirmButtonColor: '#1a1a1a'
+                });
+                return;
+            }
+
+            invoices = normalizedIncoming;
+            updateInvoiceList();
+            await saveAdminAuditRecord({
+                action: 'backup_imported',
+                at: new Date().toISOString(),
+                byEmail: currentUser?.email || 'desconocido',
+                byRole: currentUser?.role || 'unknown',
+                importedInvoices: normalizedIncoming.length
+            });
+            showToast('Respaldo importado correctamente', 'success', 2200, 'top-end', { toastType: 'success' });
+            localStorage.setItem(BACKUP_REMINDER_LAST_KEY, String(Date.now()));
         }
 
         // Verificar autenticación obligatoria con Firebase Auth
@@ -336,8 +613,8 @@
                     return;
                 }
 
-                localStorage.setItem('currentUser', JSON.stringify({ email: userData.email, role: userData.role }));
-                currentUser = { email: userData.email, role: userData.role };
+                localStorage.setItem('currentUser', JSON.stringify({ email: userData.email, role: userData.role, uid: user.uid || '' }));
+                currentUser = { email: userData.email, role: userData.role, uid: user.uid || '' };
                 initInvoicesRealtime();
             });
         })();
@@ -473,6 +750,8 @@
             const interactiveButtons = [
                 document.getElementById('btnNewInvoice'),
                 document.getElementById('btnHistoryView'),
+                document.getElementById('btnBackupExport'),
+                document.getElementById('btnBackupImport'),
                 document.getElementById('btnAdminPanel')
             ];
 
@@ -634,6 +913,17 @@
             return false;
         }
 
+        function ensureAdminAction(actionName = 'esta acción') {
+            if (currentUser && currentUser.role === 'admin') return true;
+            Swal.fire({
+                icon: 'error',
+                title: 'Sin permisos',
+                text: `Solo administradores pueden realizar ${actionName}.`,
+                confirmButtonColor: '#1a1a1a'
+            });
+            return false;
+        }
+
         // Require login: si no hay usuario logueado, redirigir a login
         (function ensureLogin(){
             try {
@@ -653,6 +943,12 @@
                     if (newInvoiceBtn && !canCreateInvoices()) {
                         newInvoiceBtn.classList.add('hidden');
                     }
+
+                    const backupExportBtn = document.getElementById('btnBackupExport');
+                    const backupImportBtn = document.getElementById('btnBackupImport');
+                    const canUseBackupControls = !!(current && current.role === 'admin');
+                    if (backupExportBtn) backupExportBtn.classList.toggle('hidden', !canUseBackupControls);
+                    if (backupImportBtn) backupImportBtn.classList.toggle('hidden', !canUseBackupControls);
 
                     // Mostrar botón 'Panel de Usuarios' solo para administradores
                     try {
@@ -901,11 +1197,13 @@
             try {
                 invoices = await loadInvoicesWithRetry();
                 updateInvoiceList();
+                maybeNotifyBackupReminder();
                 hideAppLoading();
             } catch (error) {
                 console.error('No se pudieron cargar facturas al iniciar:', error);
                 invoices = [];
                 updateInvoiceList();
+                maybeNotifyBackupReminder();
                 hideAppLoading();
             }
 
@@ -1139,6 +1437,146 @@
             const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
             const year = parsedDate.getFullYear();
             return `${day}-${month}-${year}`;
+        }
+
+        function formatDateTimeSV(dateValue) {
+            const raw = String(dateValue || '').trim();
+            if (!raw) return '';
+            const parsedDate = new Date(raw);
+            if (Number.isNaN(parsedDate.getTime())) return raw;
+
+            const day = String(parsedDate.getDate()).padStart(2, '0');
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+            const year = parsedDate.getFullYear();
+            const hours = String(parsedDate.getHours()).padStart(2, '0');
+            const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+            return `${day}-${month}-${year} ${hours}:${minutes}`;
+        }
+
+        function getAuditActionLabel(action) {
+            const normalized = String(action || '').toLowerCase();
+            const labels = {
+                created: 'Creada',
+                updated: 'Actualizada',
+                deleted: 'Eliminada',
+                restored: 'Restaurada',
+                backup_imported: 'Respaldo importado'
+            };
+            return labels[normalized] || normalized || 'Evento';
+        }
+
+        function getAuditActionBadgeStyle(action) {
+            const normalized = String(action || '').toLowerCase();
+            const isDark = document.documentElement.classList.contains('dark-mode');
+
+            const tones = {
+                created: {
+                    light: { bg: '#dcfce7', fg: '#166534', bd: '#86efac' },
+                    dark: { bg: '#064e3b', fg: '#86efac', bd: '#059669' }
+                },
+                updated: {
+                    light: { bg: '#fef3c7', fg: '#92400e', bd: '#fcd34d' },
+                    dark: { bg: '#78350f', fg: '#fde68a', bd: '#d97706' }
+                },
+                deleted: {
+                    light: { bg: '#fee2e2', fg: '#991b1b', bd: '#fca5a5' },
+                    dark: { bg: '#7f1d1d', fg: '#fecaca', bd: '#ef4444' }
+                },
+                restored: {
+                    light: { bg: '#e0f2fe', fg: '#075985', bd: '#7dd3fc' },
+                    dark: { bg: '#0c4a6e', fg: '#bae6fd', bd: '#0284c7' }
+                },
+                backup_imported: {
+                    light: { bg: '#ede9fe', fg: '#5b21b6', bd: '#c4b5fd' },
+                    dark: { bg: '#4c1d95', fg: '#ddd6fe', bd: '#7c3aed' }
+                },
+                default: {
+                    light: { bg: '#f3f4f6', fg: '#374151', bd: '#d1d5db' },
+                    dark: { bg: '#1f2937', fg: '#e5e7eb', bd: '#475569' }
+                }
+            };
+
+            const tone = (tones[normalized] || tones.default)[isDark ? 'dark' : 'light'];
+            return `background-color:${tone.bg};color:${tone.fg};border-color:${tone.bd};`;
+        }
+
+        function getAuditDayGroup(dateValue) {
+            const parsed = new Date(String(dateValue || '').trim());
+            if (Number.isNaN(parsed.getTime())) return 'older';
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const entryDay = new Date(parsed);
+            entryDay.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.round((today.getTime() - entryDay.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'today';
+            if (diffDays === 1) return 'yesterday';
+            return 'older';
+        }
+
+        function showInvoiceChangeLog(invoiceId) {
+            const invoice = invoices.find(item => Number(item?.id) === Number(invoiceId));
+            if (!invoice) return;
+
+            const entries = Array.isArray(invoice.changeLog)
+                ? [...invoice.changeLog].filter(Boolean).reverse()
+                : [];
+
+            if (!entries.length) {
+                Swal.fire({
+                    icon: 'info',
+                    title: `Sin historial #${invoice.number}`,
+                    text: 'Esta factura aún no tiene eventos registrados.',
+                    confirmButtonColor: '#1a1a1a'
+                });
+                return;
+            }
+
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            const itemStyle = isDark
+                ? 'border-color:#334155;background-color:#0f172a;'
+                : 'border-color:#e5e7eb;background-color:#ffffff;';
+            const metaTextStyle = isDark ? 'color:#cbd5e1;' : 'color:#6b7280;';
+
+            const renderEntry = (entry) => {
+                const actionLabel = getAuditActionLabel(entry.action);
+                const actionBadgeStyle = getAuditActionBadgeStyle(entry.action);
+                const whenText = formatDateTimeSV(entry.at);
+                const byText = entry.byEmail || 'desconocido';
+                const statusText = entry.invoiceStatus ? ` · Estado: ${getStatusText(entry.invoiceStatus)}` : '';
+
+                return `<li class="border rounded-lg px-3 py-2 mb-2" style="${itemStyle}"><p><span class="audit-log-badge inline-flex items-center px-2 py-0.5 rounded-full border font-semibold" style="${actionBadgeStyle}">${actionLabel}</span></p><p class="audit-log-meta mt-1" style="${metaTextStyle}">${whenText} · ${byText}${statusText}</p></li>`;
+            };
+
+            const grouped = { today: [], yesterday: [], older: [] };
+            entries.forEach((entry) => {
+                grouped[getAuditDayGroup(entry.at)].push(entry);
+            });
+
+            const headingStyle = isDark ? 'color:#e2e8f0;' : 'color:#1f2937;';
+            const groupMap = [
+                { key: 'today', label: 'Hoy' },
+                { key: 'yesterday', label: 'Ayer' },
+                { key: 'older', label: 'Anteriores' }
+            ];
+
+            const sectionsHtml = groupMap
+                .filter(group => grouped[group.key].length > 0)
+                .map(group => {
+                    const groupItems = grouped[group.key].map(renderEntry).join('');
+                    return `<section class="mb-3"><h4 class="text-sm font-semibold mb-2" style="${headingStyle}">${group.label}</h4><ul class="list-none m-0 p-0">${groupItems}</ul></section>`;
+                })
+                .join('');
+
+            Swal.fire({
+                title: `Historial #${invoice.number}`,
+                html: `<div class="text-left max-h-[360px] overflow-y-auto">${sectionsHtml}</div>`,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#1a1a1a',
+                width: 680
+            });
         }
 
         function updateStatusSections(statusValue) {
@@ -1430,12 +1868,16 @@
                 }
             });
 
+            const nowIso = new Date().toISOString();
+
             if (editingId) {
                 const invoiceIndex = invoices.findIndex(inv => inv.id === editingId);
                 if (invoiceIndex !== -1) {
                     const updatedInvoices = [...invoices];
+                    const existingInvoice = invoices[invoiceIndex];
+                    const updateAudit = createAuditEntry('updated', existingInvoice);
                     updatedInvoices[invoiceIndex] = {
-                        ...invoices[invoiceIndex],
+                        ...existingInvoice,
                         number: document.getElementById('numero').value,
                         client: document.getElementById('cliente').value,
                         date: `${document.getElementById('anio').value}-${String(document.getElementById('mes').value).padStart(2, '0')}-${String(document.getElementById('dia').value).padStart(2, '0')}`,
@@ -1449,10 +1891,15 @@
                         paidDate,
                         address: document.getElementById('direccion').value,
                         items: items,
-                        createdByEmail: invoices[invoiceIndex].createdByEmail || (currentUser ? currentUser.email : null)
+                        createdByEmail: existingInvoice.createdByEmail || (currentUser ? currentUser.email : null),
+                        createdAt: existingInvoice.createdAt || nowIso,
+                        updatedAt: nowIso,
+                        updatedByEmail: currentUser ? currentUser.email : '',
+                        changeLog: appendChangeLog(existingInvoice.changeLog, updateAudit)
                     };
                     try {
                         await saveInvoiceRecord(updatedInvoices[invoiceIndex]);
+                        await saveAdminAuditRecord(updateAudit);
                         invoices = updatedInvoices;
                         resetForm();
                         updateInvoiceList();
@@ -1468,6 +1915,7 @@
                     }
                 }
             } else {
+                const createAudit = createAuditEntry('created');
                 const newInvoice = {
                     id: Date.now(),
                     number: document.getElementById('numero').value,
@@ -1483,13 +1931,18 @@
                     paidDate,
                     address: document.getElementById('direccion').value,
                     items: items,
-                    createdByEmail: currentUser ? currentUser.email : null
+                    createdByEmail: currentUser ? currentUser.email : null,
+                    createdAt: nowIso,
+                    updatedAt: nowIso,
+                    updatedByEmail: currentUser ? currentUser.email : '',
+                    changeLog: appendChangeLog([], createAudit)
                 };
 
                 const updatedInvoices = [...invoices, newInvoice];
 
                 try {
                     await saveInvoiceRecord(newInvoice);
+                    await saveAdminAuditRecord({ ...createAudit, invoiceId: newInvoice.id, invoiceNumber: newInvoice.number, invoiceStatus: newInvoice.status });
                     invoices = updatedInvoices;
                     resetForm();
                     updateInvoiceList();
@@ -1515,6 +1968,7 @@
             const visible = filterInvoicesByVisibility(invoices);
             let filtered = filterInvoicesByStatus(visible, currentFilter);
             filtered = prioritizeOverdueInvoices(filtered);
+            updateOperationalAlerts(visible);
             
             totalCount.textContent = IS_HISTORY_VIEW ? `${filtered.length} pagadas` : `${filtered.length} activas`;
             
@@ -1584,8 +2038,9 @@
                 : '';
             const paidDateHtml = inv.paidDate ? `<p class="text-xs text-gray-500 mt-1">FECHA DE PAGO: ${formatDateSV(inv.paidDate)}</p>` : '';
             const dispatchHtml = inv.dispatchDetail ? `<p class="text-xs text-gray-500 mt-1">DESPACHO: ${inv.dispatchDetail}</p>` : '';
+            const manualStatusClass = isOverdue ? 'manual-status-with-alert' : '';
             const manualStatusHtml = inv.manualStatusLocked
-                ? '<p class="text-xs italic text-gray-500 mb-2">Estado manual</p>'
+                ? `<p class="text-xs italic text-gray-500 mb-2 ${manualStatusClass}">Estado manual</p>`
                 : '';
             const statusDetailHtml = inv.status === 'dispatch'
                 ? dispatchHtml
@@ -2176,6 +2631,7 @@
             const dispatchMeta = inv.dispatchDetail
                 ? `<p class="mt-1 invoice-meta-row"><span class="invoice-meta-badge invoice-meta-badge-dispatch">DESPACHO:</span><span class="invoice-meta-value invoice-meta-value-dispatch">${inv.dispatchDetail}</span></p>`
                 : '';
+            const changeLogButton = '<button type="button" class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700 underline" onclick="showInvoiceChangeLog(' + inv.id + ')">Ver historial de cambios</button>';
 
             let itemsHtml = '<table class="w-full text-sm border-collapse"><tr class="border-b"><th class="text-left p-2">Cant.</th><th class="text-left p-2">Descripción</th><th class="text-left p-2">Precio</th><th class="text-right p-2">Total</th></tr>';
             
@@ -2199,6 +2655,7 @@
                             <p><strong>Dirección:</strong> ${addressText}</p>
                             <p><strong>Fecha:</strong> ${formatDateSV(inv.date)}</p>
                             <p><strong>Estado:</strong> ${statusText}</p>
+                            ${changeLogButton}
                             ${paymentMeta}
                             ${dueDateMeta}
                             ${paidDateMeta}
@@ -2345,6 +2802,7 @@
                     const updatedInvoices = invoices.filter(inv => inv.id !== id);
                     try {
                         await deleteInvoiceRecord(id);
+                        await saveAdminAuditRecord(createAuditEntry('deleted', deletedInvoice));
                         invoices = updatedInvoices;
                         updateInvoiceList();
 
@@ -2362,6 +2820,7 @@
 
                         if (undoResult.isConfirmed) {
                             await saveInvoiceRecord(deletedInvoice);
+                            await saveAdminAuditRecord(createAuditEntry('restored', deletedInvoice));
                             updateInvoiceList();
                             showToast(`Factura #${deletedInvoice.number} restaurada`, 'success', 1800, 'top-end', { toastType: 'success' });
                         }
@@ -2463,6 +2922,45 @@
             currentPage = 1;
             document.getElementById('searchInput').value = '';
             updateInvoiceList();
+        });
+
+        document.getElementById('btnBackupExport').addEventListener('click', function() {
+            exportInvoicesBackup();
+        });
+
+        document.getElementById('btnBackupImport').addEventListener('click', async function() {
+            const input = document.getElementById('backupImportInput');
+            if (!input) return;
+
+            if (!window.Swal) {
+                input.click();
+                return;
+            }
+
+            const lastBackupText = getLastBackupExportLabel();
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Importar copia de seguridad',
+                html: `<p class="mb-2">Selecciona un archivo <strong>.json</strong> exportado desde este sistema.</p><p class="text-sm text-gray-500">La importación reemplaza las facturas actuales.</p><p class="text-xs text-gray-500 mt-2">${lastBackupText}</p>`,
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#1a1a1a'
+            });
+
+            if (result.isConfirmed) {
+                input.click();
+            }
+        });
+
+        document.getElementById('backupImportInput').addEventListener('change', async function(event) {
+            const file = event.target.files && event.target.files[0];
+            try {
+                await importInvoicesBackupFile(file);
+            } finally {
+                event.target.value = '';
+            }
         });
 
         function logout() {

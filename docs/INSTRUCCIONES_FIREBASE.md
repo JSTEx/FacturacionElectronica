@@ -36,28 +36,53 @@ Luego agrega ese usuario en Realtime Database dentro de `users`:
 }
 ```
 
-### 3) Reglas de Realtime Database
+### 3) Reglas de Realtime Database (recomendadas para producción)
 
-En **Realtime Database** → **Rules**, publica:
+En **Realtime Database** → **Rules**, publica reglas por rol y validación básica de campos.
+
+> Nota: estas reglas asumen que `users` está indexado por `uid` (ejemplo: `/users/<uid>/role`).
 
 ```json
 {
   "rules": {
     "users": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        "role": {
+          ".validate": "newData.val() === 'admin' || newData.val() === 'user'"
+        }
+      }
     },
     "invoices": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      "$invoiceId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (data.exists() ? (data.child('createdByEmail').val() === auth.token.email || root.child('users').child(auth.uid).child('role').val() === 'admin') : true)",
+        "number": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "client": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "amount": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "status": { ".validate": "newData.isString()" },
+        "createdByEmail": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "updatedAt": { ".validate": "newData.isString()" },
+        "updatedByEmail": { ".validate": "newData.isString()" }
+      }
     },
     "adminAudit": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      "$entry": {
+        ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      }
     }
   }
 }
 ```
+
+### 4) Buenas prácticas de seguridad de datos
+
+- Guarda cada usuario en `/users/<uid>` para reglas más seguras.
+- No permitas que un usuario edite facturas que no creó (excepto admin).
+- Valida tipos mínimos (`number`, `string`) en campos críticos.
+- Guarda trazabilidad: `createdAt`, `updatedAt`, `updatedByEmail`, `changeLog`.
 
 ## 🔐 Flujo actual
 

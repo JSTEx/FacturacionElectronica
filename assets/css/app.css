@@ -89,6 +89,80 @@ body.page-index .status-select {
     background-color: var(--input-bg);
 }
 
+body.page-index .backup-nav-btn {
+    min-height: 38px;
+    white-space: nowrap;
+}
+
+body.page-index .operational-alerts {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+body.page-index .op-alert-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+body.page-index .op-alert-chip strong {
+    font-weight: 800;
+}
+
+body.page-index .audit-log-badge {
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+}
+
+body.page-index .audit-log-meta {
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+body.page-index .op-alert-overdue {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+body.page-index .op-alert-today {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+body.page-index .op-alert-soon {
+    background-color: #e0f2fe;
+    color: #075985;
+    border-color: #7dd3fc;
+}
+
+html.dark-mode body.page-index .op-alert-overdue {
+    background-color: #7f1d1d;
+    color: #fecaca;
+    border-color: #b91c1c;
+}
+
+html.dark-mode body.page-index .op-alert-today {
+    background-color: #78350f;
+    color: #fde68a;
+    border-color: #d97706;
+}
+
+html.dark-mode body.page-index .op-alert-soon {
+    background-color: #0c4a6e;
+    color: #bae6fd;
+    border-color: #0284c7;
+}
+
 body.page-index #dueDateWrapper .date-format-hint,
 body.page-index #paidDateWrapper .date-format-hint {
     opacity: 0;
@@ -828,7 +902,7 @@ body.page-index .status-badge {
 
 body.page-index .overdue-notification-icon {
     position: absolute;
-    top: 10px;
+    top: 12px;
     left: 10px;
     width: 24px;
     height: 24px;
@@ -865,6 +939,13 @@ body.page-index .invoice-card.invoice-card-overdue {
 
 body.page-index .invoice-card.invoice-card-overdue:hover {
     box-shadow: 0 0 0 0.5px rgba(239, 68, 68, 0.2), 0 0 16px rgba(239, 68, 68, 0.24);
+}
+
+body.page-index .manual-status-with-alert {
+    padding-left: 26px;
+    min-height: 18px;
+    display: inline-flex;
+    align-items: center;
 }
 
 html.dark-mode body.page-index .invoice-card.invoice-card-overdue {
@@ -1836,6 +1917,25 @@ body.page-index .app-loading-hidden {
         font-size: 10px;
         padding: 2px 6px;
         border-radius: 4px;
+    }
+
+    body.page-index .backup-nav-btn {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    body.page-index .op-alert-chip {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    body.page-index .audit-log-badge {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    body.page-index .audit-log-meta {
+        font-size: 12px;
     }
 
     body.page-index #btnNewInvoice {

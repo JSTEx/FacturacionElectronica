@@ -104,3 +104,18 @@ if (window.anime) {
 | Anime.js | Animaciones UI (badges, notificaciones, transiciones) / UI animations (badges, notifications, transitions) | `<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>` |
 | Chart.js | Gráficas de ventas, pagadas vs pendientes, reportes / Sales charts, paid vs pending, reports | `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>` |
 | IMask | Máscaras de input para dinero, NIT, teléfono / Input masks for currency, tax ID, phone | `<script src="https://cdn.jsdelivr.net/npm/imask"></script>` |
+
+## Respaldo manual / Manual backup
+
+- Usa **Exportar** para descargar una copia JSON de las facturas.
+- Usa **Importar** para restaurar una copia JSON (reemplaza el dataset actual).
+- La app muestra un recordatorio para hacer respaldo manual; no crea copias automáticamente.
+
+## Checklist de publicación / Pre-release checklist
+
+- Verificar login y redirección sin sesión (`pages/login.html`).
+- Probar crear, editar, eliminar y deshacer eliminación de facturas.
+- Confirmar exportación/importación de respaldo manual.
+- Validar PDF (previsualización y descarga).
+- Revisar vista activa e historial pagadas.
+- Confirmar reglas de Firebase en `docs/INSTRUCCIONES_FIREBASE.md`.
