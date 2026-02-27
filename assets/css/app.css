@@ -537,7 +537,6 @@ body.pdf-preview .pdf-legacy-foot {
 body.pdf-preview .pdf-copies {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: auto auto;
     gap: 8px;
     width: 100%;
     position: relative;
@@ -549,7 +548,6 @@ body.pdf-preview .pdf-copy-slot {
 }
 
 body.pdf-preview .pdf-copy-slot:nth-child(3) {
-    grid-column: 1 / -1;
     overflow: visible;
     display: flex;
     justify-content: flex-start;
@@ -557,14 +555,15 @@ body.pdf-preview .pdf-copy-slot:nth-child(3) {
 }
 
 body.pdf-preview .pdf-copy-slot:nth-child(3) .pdf-copy {
-    width: 100%;
-    transform: none;
+    transform-origin: top left;
+    width: 230%;
+    transform: rotate(-90deg) translateX(-100%);
 }
 
 body.pdf-preview .pdf-fit-area {
     width: 100%;
     overflow: visible;
-    zoom: 1;
+    zoom: var(--pdf-scale, 1);
     transform-origin: top left;
 }
 
@@ -719,7 +718,6 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
         overflow: hidden;
         margin: 0;
         padding: 0;
-        zoom: 1 !important;
     }
 
     body.pdf-preview .pdf-card {
@@ -732,7 +730,6 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
     body.pdf-preview .pdf-copies {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: auto auto;
         gap: 0;
         overflow: hidden;
         page-break-after: avoid;
@@ -756,7 +753,6 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
     }
 
     body.pdf-preview .pdf-copy-slot:nth-child(3) {
-        grid-column: 1 / -1;
         border-right: none;
         padding: 6px;
         overflow: visible;
@@ -766,8 +762,9 @@ body.pdf-preview .status-pending { background-color: #fef3c7; color: #92400e; bo
     }
 
     body.pdf-preview .pdf-copy-slot:nth-child(3) .pdf-copy {
-        width: 100%;
-        transform: none;
+        transform-origin: top left;
+        width: 230%;
+        transform: rotate(-90deg) translateX(-100%);
     }
 
     body.pdf-preview .pdf-cut-line {
