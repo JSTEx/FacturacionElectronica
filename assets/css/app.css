@@ -223,8 +223,8 @@ body.page-index .invoice-footer-signature {
 }
 
 body.pdf-preview {
-    --pdf-preview-scale: 0.78;
-    --pdf-print-scale: 0.82;
+    --pdf-preview-scale: 0.81;
+    --pdf-print-scale: 0.85;
     --pdf-copies-gap: 8px;
     font-family: 'Inter', sans-serif;
     margin: 0;
