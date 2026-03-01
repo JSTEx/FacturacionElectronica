@@ -19,6 +19,42 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2322c55e' width='100' height='100' rx='20'/><text y='70' font-size='60' fill='white' text-anchor='middle' x='50' font-weight='bold'>$</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="assets/css/app.css">
+        <style>
+        @media print {
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box;
+            }
+            .btn-imprimir, .btn-cerrar, .boton, button {
+                display: none !important;
+            }
+            .factura-container {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-start;
+                justify-content: center;
+                width: 100vw;
+                height: auto;
+                gap: 0;
+                page-break-inside: avoid;
+            }
+            .factura {
+                margin: 0 !important;
+                page-break-inside: avoid;
+                width: auto !important;
+                max-width: 100% !important;
+                box-sizing: border-box;
+            }
+            /* Elimina espacio extra */
+            html, body {
+                width: 100vw;
+                height: auto;
+                overflow: visible !important;
+            }
+        }
+        </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
     <script src="assets/js/app-utils.js"></script>
