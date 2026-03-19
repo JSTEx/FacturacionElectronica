@@ -1811,11 +1811,24 @@ html.dark-mode body.page-index strong {
 }
 
 body.page-index .nav-link-btn {
-    color: var(--text-secondary);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1.5px solid rgba(239, 68, 68, 0.25);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 }
 
 body.page-index .nav-link-btn:hover {
-    color: var(--text-primary);
+    color: #fff;
+    background: #ef4444;
+    border-color: #ef4444;
+    transform: translateY(-1px);
+}
+
+body.page-index .nav-link-btn:active {
+    transform: translateY(0);
 }
 
 body.page-index .app-loading-overlay {
@@ -3108,5 +3121,165 @@ html.dark-mode body.page-index #btnHistoryView:hover span {
 @keyframes skeletonShimmer {
     100% {
         transform: translateX(100%);
+    }
+}
+
+/* ==============================================
+   MENÚ HAMBURGUESA / NAV RESPONSIVE (page-index)
+   ============================================== */
+
+/* Desktop: nav colapsable como fila inline */
+body.page-index #navCollapsible {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+body.page-index .nav-right-group {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Botón hamburguesa oculto en desktop */
+body.page-index .hamburger-btn {
+    display: none;
+}
+
+/* ---- Móvil (< 768px) ---- */
+@media (max-width: 767px) {
+
+    /* Nav: una sola fila, sin wrap */
+    body.page-index nav.app-nav {
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    /* Div con Nueva Factura: empujado a la derecha */
+    body.page-index nav.app-nav > div.shrink-0 {
+        margin-left: auto;
+    }
+
+    /* Nav colapsable: oculto por defecto, dropdown cuando .is-open */
+    body.page-index #navCollapsible {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 14px 16px 16px;
+        background-color: var(--nav-bg);
+        border-top: 1px solid var(--border-color);
+        border-bottom: 2px solid var(--border-color);
+        z-index: 99;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.13);
+    }
+
+    body.page-index #navCollapsible.is-open {
+        display: flex;
+    }
+
+    /* Ítems del menú: ancho completo */
+    body.page-index #navCollapsible > a,
+    body.page-index #navCollapsible > button {
+        width: 100%;
+        justify-content: flex-start !important;
+    }
+
+    body.page-index #navCollapsible #adminPanelBtnContainer {
+        width: 100%;
+    }
+
+    body.page-index #navCollapsible #adminPanelBtnContainer > * {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    /* Grupo derecho: columna con separador */
+    body.page-index .nav-right-group {
+        margin-left: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 6px;
+        width: 100%;
+    }
+
+    body.page-index .nav-right-group .dark-mode-toggle {
+        margin-right: 0;
+    }
+
+    body.page-index .nav-right-group .nav-link-btn {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 6px 0;
+    }
+
+    /* Botón hamburguesa */
+    body.page-index .hamburger-btn {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        width: 40px;
+        height: 36px;
+        padding: 7px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        flex-shrink: 0;
+        transition: background 0.15s ease;
+    }
+
+    body.page-index .hamburger-btn:hover {
+        background: rgba(0, 0, 0, 0.07);
+    }
+
+    html.dark-mode body.page-index .hamburger-btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+    }
+
+    body.page-index .hamburger-line {
+        display: block;
+        width: 21px;
+        height: 2px;
+        background-color: var(--text-primary);
+        border-radius: 2px;
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.2s ease;
+        transform-origin: center;
+    }
+
+    /* Animación: hamburguesa → X */
+    body.page-index .hamburger-btn.is-active .hamburger-line:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    body.page-index .hamburger-btn.is-active .hamburger-line:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+
+    body.page-index .hamburger-btn.is-active .hamburger-line:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+}
+
+/* Pantallas móviles: ocultar título para dar protagonismo a hamburguesa + Nueva Factura */
+@media (max-width: 767px) {
+    body.page-index .nav-title {
+        display: none;
     }
 }

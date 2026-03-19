@@ -1,6 +1,16 @@
 function filterInvoicesByStatus(invoices, status) {
     const list = Array.isArray(invoices) ? invoices : [];
     if (status === 'all') return [...list];
+    if (status === 'late') {
+        const today = new Date().toISOString().split('T')[0];
+        return list.filter((inv) => {
+            if (!inv) return false;
+            const normalizedStatus = String(inv.status || '').toLowerCase();
+            if (normalizedStatus === 'late' || normalizedStatus === 'vencida') return true;
+            const dueDate = String(inv.dueDate || '').trim();
+            return dueDate && dueDate < today;
+        });
+    }
     return list.filter((inv) => inv && inv.status === status);
 }
 
