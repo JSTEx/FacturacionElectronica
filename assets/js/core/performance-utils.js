@@ -1,7 +1,12 @@
+// Helpers de rendimiento: debounce, throttle y optimizaciones de UI.
+// Funcion: runLazyLoading
+// Que hace: Gestiona la logica de runLazyLoading.
 function runLazyLoading(root = document) {
     const lazyElements = root.querySelectorAll('[data-src], [data-srcset], [data-poster], [data-bg-src]');
     if (!lazyElements.length) return;
 
+// Funcion: applySource
+// Que hace: Gestiona la logica de applySource.
     const applySource = (element) => {
         if (element.dataset.src) {
             element.setAttribute('src', element.dataset.src);
@@ -42,6 +47,8 @@ function runLazyLoading(root = document) {
     lazyElements.forEach((element) => observer.observe(element));
 }
 
+// Funcion: applyNativeLazyLoadingHints
+// Que hace: Gestiona la logica de applyNativeLazyLoadingHints.
 function applyNativeLazyLoadingHints(root = document) {
     root.querySelectorAll('img:not([loading])').forEach((img) => {
         img.setAttribute('loading', 'lazy');
@@ -53,6 +60,8 @@ function applyNativeLazyLoadingHints(root = document) {
     });
 }
 
+// Funcion: createSkeletonRows
+// Que hace: Gestiona la logica de createSkeletonRows.
 function createSkeletonRows(options = {}) {
     const count = Number(options.count) || 5;
     const columns = Number(options.columns) || 4;
@@ -62,6 +71,8 @@ function createSkeletonRows(options = {}) {
     }).join('');
 }
 
+// Funcion: createSkeletonCards
+// Que hace: Gestiona la logica de createSkeletonCards.
 function createSkeletonCards(options = {}) {
     const count = Number(options.count) || 6;
     return Array.from({ length: count }).map(() => `

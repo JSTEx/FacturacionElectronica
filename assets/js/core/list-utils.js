@@ -1,3 +1,6 @@
+// Utilidades de listas: filtrar, buscar, ordenar y paginar facturas.
+// Funcion: filterInvoicesByStatus
+// Que hace: Gestiona la logica de filterInvoicesByStatus.
 function filterInvoicesByStatus(invoices, status) {
     const list = Array.isArray(invoices) ? invoices : [];
     if (status === 'all') return [...list];
@@ -14,11 +17,15 @@ function filterInvoicesByStatus(invoices, status) {
     return list.filter((inv) => inv && inv.status === status);
 }
 
+// Funcion: sortInvoicesDescById
+// Que hace: Gestiona la logica de sortInvoicesDescById.
 function sortInvoicesDescById(invoices) {
     const list = Array.isArray(invoices) ? [...invoices] : [];
     return list.sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
 }
 
+// Funcion: searchInvoices
+// Que hace: Gestiona la logica de searchInvoices.
 function searchInvoices(invoices, term) {
     const list = Array.isArray(invoices) ? invoices : [];
     const normalizedTerm = String(term || '').toLowerCase().trim();
@@ -31,6 +38,8 @@ function searchInvoices(invoices, term) {
     });
 }
 
+// Funcion: paginateList
+// Que hace: Gestiona la logica de paginateList.
 function paginateList(items, currentPage, pageSize) {
     const list = Array.isArray(items) ? items : [];
     const safePageSize = Math.max(1, Number(pageSize) || 1);

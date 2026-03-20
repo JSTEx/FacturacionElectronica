@@ -1,4 +1,5 @@
-﻿        async function loadInvoices() {
+// Persistencia local de borradores y sincronizacion de datos del formulario.
+        async function loadInvoices() {
             const data = await getFirebaseData('invoices');
             return normalizeInvoices(data);
         }
@@ -24,6 +25,8 @@
             }
         }
 
+// Funcion: isLegacyInvoicesObject
+// Que hace: Gestiona la logica de isLegacyInvoicesObject.
         function isLegacyInvoicesObject(rawInvoices) {
             if (!rawInvoices || typeof rawInvoices !== 'object' || Array.isArray(rawInvoices)) return false;
             const keys = Object.keys(rawInvoices);
@@ -84,6 +87,8 @@
         const INVOICE_DRAFT_KEY = 'invoiceDraftV1';
         let draftSaveTimer = null;
 
+// Funcion: buildInvoiceDraft
+// Que hace: Gestiona la logica de buildInvoiceDraft.
         function buildInvoiceDraft() {
             const rows = Array.from(document.querySelectorAll('#itemsTableBody tr'));
             return {
@@ -107,6 +112,8 @@
             };
         }
 
+// Funcion: hasMeaningfulDraftData
+// Que hace: Gestiona la logica de hasMeaningfulDraftData.
         function hasMeaningfulDraftData(draft) {
             if (!draft) return false;
             const hasClientData = !!String(draft.cliente || '').trim() || !!String(draft.direccion || '').trim();
@@ -121,6 +128,8 @@
             return hasClientData || hasItemsData || hasAbonoData || hasStatusDetails || hasStatusLock;
         }
 
+// Funcion: saveDraftNow
+// Que hace: Gestiona la logica de saveDraftNow.
         function saveDraftNow() {
             if (editingId) return;
             const formView = document.getElementById('invoiceFormView');
@@ -134,17 +143,23 @@
             }
         }
 
+// Funcion: scheduleDraftSave
+// Que hace: Gestiona la logica de scheduleDraftSave.
         function scheduleDraftSave() {
             if (editingId) return;
             clearTimeout(draftSaveTimer);
             draftSaveTimer = setTimeout(saveDraftNow, 300);
         }
 
+// Funcion: clearInvoiceDraft
+// Que hace: Gestiona la logica de clearInvoiceDraft.
         function clearInvoiceDraft() {
             localStorage.removeItem(INVOICE_DRAFT_KEY);
             clearTimeout(draftSaveTimer);
         }
 
+// Funcion: restoreDraftIfExists
+// Que hace: Gestiona la logica de restoreDraftIfExists.
         function restoreDraftIfExists() {
             if (editingId) return;
             const rawDraft = localStorage.getItem(INVOICE_DRAFT_KEY);
@@ -234,6 +249,8 @@
                 maybeNotifyBackupReminder();
             }
 
+// Funcion: subscribe
+// Que hace: Gestiona la logica de subscribe.
             const subscribe = () => {
                 const invoicesRef = window.firebaseRef(window.firebaseDB, 'invoices');
                 stopInvoicesRealtime = window.firebaseOnValue(
@@ -251,4 +268,3 @@
 
             subscribe();
         }
-

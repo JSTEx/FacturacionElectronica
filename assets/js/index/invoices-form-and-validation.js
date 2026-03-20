@@ -1,4 +1,7 @@
-﻿        function showInvoiceForm() {
+// Formulario de factura: validacion, reglas de negocio y calculos.
+// Funcion: showInvoiceForm
+// Que hace: Gestiona la logica de showInvoiceForm.
+        function showInvoiceForm() {
             if (!ensureCanCreateInvoices()) return;
             editingId = null;
             document.getElementById('invoiceListView').classList.add('hidden');
@@ -30,12 +33,16 @@
             restoreDraftIfExists();
         }
 
+// Funcion: generateInvoiceNumber
+// Que hace: Gestiona la logica de generateInvoiceNumber.
         function generateInvoiceNumber() {
             // El número de factura es basado en la cantidad actual de facturas + 1
             const nextNumber = invoices.length + 1;
             document.getElementById('numero').value = nextNumber;
         }
 
+// Funcion: cancelInvoice
+// Que hace: Gestiona la logica de cancelInvoice.
         function cancelInvoice() {
             Swal.fire({
                 title: '¿Cancelar?',
@@ -55,6 +62,8 @@
             });
         }
 
+// Funcion: resetForm
+// Que hace: Gestiona la logica de resetForm.
         function resetForm() {
             document.getElementById('invoiceForm').reset();
             document.getElementById('invoiceFormView').classList.add('hidden');
@@ -65,6 +74,8 @@
             clearInvoiceDraft();
         }
 
+// Funcion: resetItemsTable
+// Que hace: Gestiona la logica de resetItemsTable.
         function resetItemsTable() {
             document.getElementById('itemsTableBody').innerHTML = `
                 <tr class="border-b border-gray-100">
@@ -95,6 +106,8 @@
             syncAllItemDescHeights();
         }
 
+// Funcion: renumberItemRows
+// Que hace: Gestiona la logica de renumberItemRows.
         function renumberItemRows() {
             const rows = document.querySelectorAll('#itemsTableBody tr');
             rows.forEach((row, index) => {
@@ -105,6 +118,8 @@
             });
         }
 
+// Funcion: addItem
+// Que hace: Gestiona la logica de addItem.
         function addItem() {
             if (!ensureCanCreateInvoices()) return;
             const tbody = document.getElementById('itemsTableBody');
@@ -175,6 +190,8 @@
             scheduleDraftSave();
         }
 
+// Funcion: autoResizeItemDesc
+// Que hace: Gestiona la logica de autoResizeItemDesc.
         function autoResizeItemDesc(textarea) {
             if (!textarea) return;
             textarea.style.height = 'auto';
@@ -183,10 +200,14 @@
             textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
         }
 
+// Funcion: syncAllItemDescHeights
+// Que hace: Gestiona la logica de syncAllItemDescHeights.
         function syncAllItemDescHeights() {
             document.querySelectorAll('.item-desc-area').forEach(autoResizeItemDesc);
         }
 
+// Funcion: getTodayISODate
+// Que hace: Gestiona la logica de getTodayISODate.
         function getTodayISODate() {
             const now = new Date();
             const y = now.getFullYear();
@@ -195,6 +216,8 @@
             return `${y}-${m}-${d}`;
         }
 
+// Funcion: formatDateSV
+// Que hace: Gestiona la logica de formatDateSV.
         function formatDateSV(dateValue) {
             const raw = String(dateValue || '').trim();
             if (!raw) return '';
@@ -234,6 +257,8 @@
             return `${day}-${month}-${year}`;
         }
 
+// Funcion: formatDateTimeSV
+// Que hace: Gestiona la logica de formatDateTimeSV.
         function formatDateTimeSV(dateValue) {
             const raw = String(dateValue || '').trim();
             if (!raw) return '';
@@ -267,6 +292,8 @@
             return `${day}-${month}-${year} ${hours}:${minutes}`;
         }
 
+// Funcion: getAuditActionLabel
+// Que hace: Gestiona la logica de getAuditActionLabel.
         function getAuditActionLabel(action) {
             const normalized = String(action || '').toLowerCase();
             const labels = {
@@ -279,6 +306,8 @@
             return labels[normalized] || normalized || 'Evento';
         }
 
+// Funcion: getAuditActionBadgeStyle
+// Que hace: Gestiona la logica de getAuditActionBadgeStyle.
         function getAuditActionBadgeStyle(action) {
             const normalized = String(action || '').toLowerCase();
             const isDark = document.documentElement.classList.contains('dark-mode');
@@ -314,6 +343,8 @@
             return `background-color:${tone.bg};color:${tone.fg};border-color:${tone.bd};`;
         }
 
+// Funcion: getAuditDayGroup
+// Que hace: Gestiona la logica de getAuditDayGroup.
         function getAuditDayGroup(dateValue) {
             const parsed = new Date(String(dateValue || '').trim());
             if (Number.isNaN(parsed.getTime())) return 'older';
@@ -330,6 +361,8 @@
             return 'older';
         }
 
+// Funcion: showInvoiceChangeLog
+// Que hace: Gestiona la logica de showInvoiceChangeLog.
         function showInvoiceChangeLog(invoiceId) {
             const invoice = invoices.find(item => Number(item?.id) === Number(invoiceId));
             if (!invoice) return;
@@ -354,6 +387,8 @@
                 : 'border-color:#e5e7eb;background-color:#ffffff;';
             const metaTextStyle = isDark ? 'color:#cbd5e1;' : 'color:#6b7280;';
 
+// Funcion: renderEntry
+// Que hace: Gestiona la logica de renderEntry.
             const renderEntry = (entry) => {
                 const actionLabel = getAuditActionLabel(entry.action);
                 const actionBadgeStyle = getAuditActionBadgeStyle(entry.action);
@@ -393,6 +428,8 @@
             });
         }
 
+// Funcion: updateStatusSections
+// Que hace: Gestiona la logica de updateStatusSections.
         function updateStatusSections(statusValue) {
             const status = String(statusValue || '').toLowerCase();
             const dispatchWrapper = document.getElementById('dispatchWrapper');
@@ -404,12 +441,16 @@
             if (paidDateWrapper) paidDateWrapper.classList.toggle('hidden', status !== 'paid');
         }
 
+// Funcion: syncEstadoPreviousStatus
+// Que hace: Gestiona la logica de syncEstadoPreviousStatus.
         function syncEstadoPreviousStatus() {
             const estadoEl = document.getElementById('estado');
             if (!estadoEl) return;
             estadoEl.dataset.prevStatus = String(estadoEl.value || 'pending').toLowerCase();
         }
 
+// Funcion: getPaymentSummary
+// Que hace: Gestiona la logica de getPaymentSummary.
         function getPaymentSummary(totalValue) {
             const total = Math.max(0, Number(totalValue) || 0);
             const abonoInput = document.getElementById('abono');
@@ -422,6 +463,8 @@
             return { total, abono, abonoAplicado, saldoActual, hasAbono };
         }
 
+// Funcion: resolveStatusByBusinessRules
+// Que hace: Gestiona la logica de resolveStatusByBusinessRules.
         function resolveStatusByBusinessRules(options = {}) {
             const total = Math.max(0, Number(options.total) || 0);
             const abonoAplicado = Math.max(0, Number(options.abonoAplicado) || 0);
@@ -452,6 +495,8 @@
             return 'pending';
         }
 
+// Funcion: updatePaymentDerivedUI
+// Que hace: Gestiona la logica de updatePaymentDerivedUI.
         function updatePaymentDerivedUI(payment) {
             const saldoWrapper = document.getElementById('saldoActualWrapper');
             const saldoAmount = document.getElementById('saldoActualAmount');
@@ -493,6 +538,8 @@
             syncEstadoPreviousStatus();
         }
 
+// Funcion: calculateTotals
+// Que hace: Gestiona la logica de calculateTotals.
         function calculateTotals() {
             const rows = document.querySelectorAll('#itemsTableBody tr');
             let total = 0;
@@ -511,6 +558,8 @@
             scheduleDraftSave();
         }
 
+// Funcion: buildValidationErrorsHtml
+// Que hace: Gestiona la logica de buildValidationErrorsHtml.
         function buildValidationErrorsHtml(errors) {
             const safeErrors = Array.isArray(errors) ? errors : [];
             const groups = {
@@ -520,6 +569,8 @@
                 amounts: []
             };
 
+// Funcion: decorateStatusMentions
+// Que hace: Gestiona la logica de decorateStatusMentions.
             const decorateStatusMentions = (text) => {
                 let formatted = String(text || '');
                 const replacements = [
@@ -603,6 +654,8 @@
             const clearIds = ['dia', 'mes', 'anio', 'numero', 'cliente', 'estado', 'abono', 'detalleDespacho', 'fechaVencimiento', 'fechaPago'];
             clearIds.forEach(id => document.getElementById(id).classList.remove('input-error'));
 
+// Funcion: addError
+// Que hace: Gestiona la logica de addError.
             const addError = (id, message) => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('input-error');
@@ -651,6 +704,8 @@
             const invoiceDateIso = `${String(anio).padStart(4, '0')}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
             const todayIso = getTodayISODate();
 
+// Funcion: isValidIsoDate
+// Que hace: Gestiona la logica de isValidIsoDate.
             const isValidIsoDate = (isoDate) => {
                 if (!isoDate) return false;
                 const parsed = new Date(`${isoDate}T00:00:00`);
@@ -924,4 +979,3 @@
                 }
             }
         }
-

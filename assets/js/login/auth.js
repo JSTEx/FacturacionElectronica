@@ -1,3 +1,4 @@
+// Logica de inicio de sesion, validaciones y manejo de estado de auth.
 async function initAuthFlow() {
     showAppLoading('Verificando sesion...');
     const ready = await waitForFirebaseReady({

@@ -1,3 +1,4 @@
+// Modulo principal del panel admin: gestion de usuarios y permisos.
 window.toastTheme = {
     background: '#eff6ff',
     color: '#1e3a8a',
@@ -7,12 +8,16 @@ window.toastTheme = {
 const ADMIN_USER_PATHS = ['users', 'usuarios', 'Users', 'Usuarios'];
 let adminUsersPath = 'users';
 
+// Funcion: normalizeList
+// Que hace: Gestiona la logica de normalizeList.
 function normalizeList(value) {
     if (Array.isArray(value)) return value.filter(Boolean);
     if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
     return [];
 }
 
+// Funcion: pickFirstString
+// Que hace: Gestiona la logica de pickFirstString.
 function pickFirstString(candidates, keys) {
     for (const source of candidates) {
         if (!source || typeof source !== 'object') continue;
@@ -26,6 +31,8 @@ function pickFirstString(candidates, keys) {
     return '';
 }
 
+// Funcion: normalizeSingleUser
+// Que hace: Gestiona la logica de normalizeSingleUser.
 function normalizeSingleUser(record) {
     if (!record) return null;
 
@@ -62,6 +69,8 @@ function normalizeSingleUser(record) {
     };
 }
 
+// Funcion: extractUserRecords
+// Que hace: Gestiona la logica de extractUserRecords.
 function extractUserRecords(rawUsers, depth = 0) {
     if (depth > 4 || rawUsers === null || rawUsers === undefined) return [];
 
@@ -159,6 +168,8 @@ async function logAction(action, target) {
     await setFirebaseData('adminAudit', audits);
 }
 
+// Funcion: countAdmins
+// Que hace: Gestiona la logica de countAdmins.
 function countAdmins(list) {
     return list.filter((u) => String(u?.role || '').toLowerCase() === 'admin').length;
 }
@@ -384,6 +395,8 @@ async function openEditDialog(index) {
     await renderUsers();
 }
 
+// Funcion: bindAdminEvents
+// Que hace: Gestiona la logica de bindAdminEvents.
 function bindAdminEvents() {
     document.getElementById('userForm')?.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -494,6 +507,8 @@ function bindAdminEvents() {
     });
 }
 
+// Funcion: bindRealtimeUsers
+// Que hace: Gestiona la logica de bindRealtimeUsers.
 function bindRealtimeUsers() {
     if (window.__adminUsersRealtimeBound) return;
     if (!window.firebaseRef || !window.firebaseDB || !window.firebaseOnValue) return;
@@ -508,6 +523,8 @@ function bindRealtimeUsers() {
     window.__adminUsersRealtimeBound = true;
 }
 
+// Funcion: logout
+// Que hace: Gestiona la logica de logout.
 function logout() {
     return confirmLogout({
         confirmTitle: 'Salir del panel',

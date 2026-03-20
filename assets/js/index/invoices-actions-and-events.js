@@ -1,4 +1,7 @@
-﻿        function downloadInvoicePdf(inv, canViewAmount) {
+// Eventos de UI y acciones sobre facturas (ver, editar, eliminar).
+// Funcion: downloadInvoicePdf
+// Que hace: Gestiona la logica de downloadInvoicePdf.
+        function downloadInvoicePdf(inv, canViewAmount) {
             if (!ensureCanViewInvoice(inv)) return;
             if (!window.jspdf || !window.jspdf.jsPDF) {
                 Swal.fire({
@@ -207,6 +210,8 @@
             doc.save(`Factura-${inv.number}.pdf`);
         }
 
+// Funcion: previewInvoicePdf
+// Que hace: Gestiona la logica de previewInvoicePdf.
         function previewInvoicePdf(inv, canViewAmount) {
             if (!ensureCanViewInvoice(inv)) return;
             const normalizedStatus = String(inv.status || '').toLowerCase();
@@ -419,6 +424,8 @@
             }
         }
 
+// Funcion: viewInvoice
+// Que hace: Gestiona la logica de viewInvoice.
         function viewInvoice(id) {
             const inv = invoices.find(i => i.id === id);
             if (!inv) return;
@@ -511,6 +518,8 @@
             });
         }
 
+// Funcion: editInvoice
+// Que hace: Gestiona la logica de editInvoice.
         function editInvoice(id) {
             const inv = invoices.find(i => i.id === id);
             if (!inv) return;
@@ -591,6 +600,8 @@
             calculateTotals();
         }
 
+// Funcion: deleteInvoice
+// Que hace: Gestiona la logica de deleteInvoice.
         function deleteInvoice(id) {
             if (!(currentUser && currentUser.role === 'admin')) {
                 Swal.fire({
@@ -723,6 +734,8 @@
             scheduleDraftSave();
         });
 
+// Funcion: renderSearchResults
+// Que hace: Gestiona la logica de renderSearchResults.
         function renderSearchResults(filtered) {
             const listContainer = document.getElementById('invoiceList');
             const paginationContainer = document.getElementById('paginationContainer');
@@ -791,6 +804,8 @@
             }
         });
 
+// Funcion: logout
+// Que hace: Gestiona la logica de logout.
         function logout() {
             return confirmLogout({
                 redirectUrl: 'pages/login.html',

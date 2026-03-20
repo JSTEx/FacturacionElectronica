@@ -1,3 +1,6 @@
+// Utilidades de seguridad para manejo y validacion de contrasenas.
+// Funcion: togglePasswordVisibility
+// Que hace: Gestiona la logica de togglePasswordVisibility.
 function togglePasswordVisibility(inputId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(inputId + '-eye-icon');

@@ -1,3 +1,6 @@
+// Capa de acceso a Firebase: lecturas, escrituras y helpers comunes.
+// Funcion: normalizeUsers
+// Que hace: Gestiona la logica de normalizeUsers.
 function normalizeUsers(rawUsers) {
     if (Array.isArray(rawUsers)) return rawUsers.filter(Boolean);
     if (rawUsers && typeof rawUsers === 'object') return Object.values(rawUsers);

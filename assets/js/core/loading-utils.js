@@ -1,3 +1,6 @@
+// Control de estados de carga globales y placeholders de espera.
+// Funcion: showAppLoading
+// Que hace: Gestiona la logica de showAppLoading.
 function showAppLoading(message) {
     const overlay = document.getElementById('appLoading');
     if (!overlay) return;
@@ -6,6 +9,8 @@ function showAppLoading(message) {
     overlay.classList.remove('app-loading-hidden');
 }
 
+// Funcion: hideAppLoading
+// Que hace: Gestiona la logica de hideAppLoading.
 function hideAppLoading() {
     const overlay = document.getElementById('appLoading');
     if (!overlay) return;

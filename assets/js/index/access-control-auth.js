@@ -1,4 +1,5 @@
-﻿        showAppLoading('Verificando sesion...');
+// Control de acceso y modo de vista (activas/historial) en index.
+        showAppLoading('Verificando sesion...');
         (async function enforceAuthGuard() {
             const ready = await waitForFirebaseReady();
             if (!ready) {
@@ -33,11 +34,15 @@
         const PAGE_VIEW = new URLSearchParams(window.location.search).get('view') === 'history' ? 'history' : 'active';
         const IS_HISTORY_VIEW = PAGE_VIEW === 'history';
 
+// Funcion: isPaidInvoiceStatus
+// Que hace: Gestiona la logica de isPaidInvoiceStatus.
         function isPaidInvoiceStatus(status) {
             const normalized = String(status || '').toLowerCase();
             return normalized === 'paid' || normalized === 'pagada' || normalized === 'pagadas';
         }
 
+// Funcion: isInvoiceOverdue
+// Que hace: Gestiona la logica de isInvoiceOverdue.
         function isInvoiceOverdue(invoice) {
             if (!invoice) return false;
             const normalizedStatus = String(invoice.status || '').toLowerCase();
@@ -46,6 +51,8 @@
             return normalizedStatus === 'late' || normalizedStatus === 'vencida' || (dueDate && dueDate < today);
         }
 
+// Funcion: prioritizeOverdueInvoices
+// Que hace: Gestiona la logica de prioritizeOverdueInvoices.
         function prioritizeOverdueInvoices(list) {
             const safeList = Array.isArray(list) ? [...list] : [];
             return safeList.sort((a, b) => {
@@ -56,6 +63,8 @@
             });
         }
 
+// Funcion: animateOverdueNotificationIcons
+// Que hace: Gestiona la logica de animateOverdueNotificationIcons.
         function animateOverdueNotificationIcons() {
             if (!window.anime) return;
 
@@ -87,6 +96,8 @@
             });
         }
 
+// Funcion: attachAnimePressFeedback
+// Que hace: Gestiona la logica de attachAnimePressFeedback.
         function attachAnimePressFeedback(buttonEl) {
             if (!window.anime) return;
 
@@ -113,6 +124,8 @@
                 });
             });
 
+// Funcion: pressDown
+// Que hace: Gestiona la logica de pressDown.
             const pressDown = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -123,6 +136,8 @@
                 });
             };
 
+// Funcion: pressUp
+// Que hace: Gestiona la logica de pressUp.
             const pressUp = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -133,6 +148,8 @@
                 });
             };
 
+// Funcion: resetState
+// Que hace: Gestiona la logica de resetState.
             const resetState = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -151,6 +168,8 @@
             buttonEl.addEventListener('blur', resetState);
         }
 
+// Funcion: attachAnimeSoftFeedback
+// Que hace: Gestiona la logica de attachAnimeSoftFeedback.
         function attachAnimeSoftFeedback(buttonEl) {
             if (!window.anime) return;
 
@@ -177,6 +196,8 @@
                 });
             });
 
+// Funcion: pressDown
+// Que hace: Gestiona la logica de pressDown.
             const pressDown = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -187,6 +208,8 @@
                 });
             };
 
+// Funcion: pressUp
+// Que hace: Gestiona la logica de pressUp.
             const pressUp = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -197,6 +220,8 @@
                 });
             };
 
+// Funcion: resetState
+// Que hace: Gestiona la logica de resetState.
             const resetState = () => {
                 window.anime.remove(buttonEl);
                 window.anime({
@@ -215,6 +240,8 @@
             buttonEl.addEventListener('blur', resetState);
         }
 
+// Funcion: initAnimeButtonDemo
+// Que hace: Gestiona la logica de initAnimeButtonDemo.
         function initAnimeButtonDemo() {
             if (!window.anime) return;
 
@@ -233,6 +260,8 @@
             softButtons.forEach(attachAnimeSoftFeedback);
         }
 
+// Funcion: configurePageModeUI
+// Que hace: Gestiona la logica de configurePageModeUI.
         function configurePageModeUI() {
             const historyBtn = document.getElementById('btnHistoryView');
             const historyBtnLabel = historyBtn ? historyBtn.querySelector('span') : null;
@@ -242,6 +271,8 @@
             const filterSelect = document.getElementById('filterSelect');
             const searchInput = document.getElementById('searchInput');
 
+// Funcion: setPrimaryNavButtonAsNewInvoice
+// Que hace: Gestiona la logica de setPrimaryNavButtonAsNewInvoice.
             const setPrimaryNavButtonAsNewInvoice = () => {
                 if (!newInvoiceBtn) return;
                 newInvoiceBtn.classList.remove('hidden');
@@ -249,6 +280,8 @@
                 newInvoiceBtn.setAttribute('onclick', 'showInvoiceForm()');
             };
 
+// Funcion: setPrimaryNavButtonAsBackToActive
+// Que hace: Gestiona la logica de setPrimaryNavButtonAsBackToActive.
             const setPrimaryNavButtonAsBackToActive = () => {
                 if (!newInvoiceBtn) return;
                 newInvoiceBtn.classList.remove('hidden');
@@ -309,6 +342,8 @@
             }
         }
 
+// Funcion: loadCurrentUser
+// Que hace: Gestiona la logica de loadCurrentUser.
         function loadCurrentUser() {
             try {
                 return JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -317,19 +352,27 @@
             }
         }
 
+// Funcion: canCreateInvoices
+// Que hace: Gestiona la logica de canCreateInvoices.
         function canCreateInvoices() {
             return !!currentUser;
         }
 
+// Funcion: isInvoiceOwner
+// Que hace: Gestiona la logica de isInvoiceOwner.
         function isInvoiceOwner(invoice) {
             return !!(currentUser && invoice && invoice.createdByEmail && invoice.createdByEmail.toLowerCase() === currentUser.email.toLowerCase());
         }
 
+// Funcion: getInvoiceCreatorText
+// Que hace: Gestiona la logica de getInvoiceCreatorText.
         function getInvoiceCreatorText(invoice) {
             if (!invoice || !invoice.createdByEmail) return 'Creada por: Usuario no registrado';
             return `Creada por: ${invoice.createdByEmail}`;
         }
 
+// Funcion: getInvoiceOwnershipBadge
+// Que hace: Gestiona la logica de getInvoiceOwnershipBadge.
         function getInvoiceOwnershipBadge(invoice) {
             if (isInvoiceOwner(invoice) && canEditInvoice(invoice)) {
                 return '<p class="mt-1"><span class="owner-edit-badge">Creada por ti · editable</span></p>';
@@ -346,24 +389,32 @@
             return '';
         }
 
+// Funcion: canEditInvoice
+// Que hace: Gestiona la logica de canEditInvoice.
         function canEditInvoice(invoice) {
             if (!currentUser) return false;
             if (currentUser.role === 'admin') return true;
             return isInvoiceOwner(invoice);
         }
 
+// Funcion: canSeeInvoiceAmount
+// Que hace: Gestiona la logica de canSeeInvoiceAmount.
         function canSeeInvoiceAmount(invoice) {
             if (!currentUser || !invoice) return false;
             if (currentUser.role === 'admin') return true;
             return isInvoiceOwner(invoice);
         }
 
+// Funcion: canViewInvoice
+// Que hace: Gestiona la logica de canViewInvoice.
         function canViewInvoice(invoice) {
             if (!currentUser || !invoice) return false;
             if (currentUser.role === 'admin') return true;
             return isInvoiceOwner(invoice);
         }
 
+// Funcion: filterInvoicesByVisibility
+// Que hace: Gestiona la logica de filterInvoicesByVisibility.
         function filterInvoicesByVisibility(list) {
             if (!currentUser || !Array.isArray(list)) return [];
             const baseList = currentUser.role === 'admin' ? list : list.filter(inv => isInvoiceOwner(inv));
@@ -373,6 +424,8 @@
             return baseList.filter(inv => !isPaidInvoiceStatus(inv && inv.status));
         }
 
+// Funcion: ensureCanCreateInvoices
+// Que hace: Gestiona la logica de ensureCanCreateInvoices.
         function ensureCanCreateInvoices() {
             if (canCreateInvoices()) return true;
             Swal.fire({
@@ -384,6 +437,8 @@
             return false;
         }
 
+// Funcion: ensureCanEditInvoice
+// Que hace: Gestiona la logica de ensureCanEditInvoice.
         function ensureCanEditInvoice(invoice) {
             if (canEditInvoice(invoice)) return true;
             Swal.fire({
@@ -395,6 +450,8 @@
             return false;
         }
 
+// Funcion: ensureCanViewInvoice
+// Que hace: Gestiona la logica de ensureCanViewInvoice.
         function ensureCanViewInvoice(invoice) {
             if (canViewInvoice(invoice)) return true;
             Swal.fire({
@@ -406,6 +463,8 @@
             return false;
         }
 
+// Funcion: ensureAdminAction
+// Que hace: Gestiona la logica de ensureAdminAction.
         function ensureAdminAction(actionName = 'esta acción') {
             if (currentUser && currentUser.role === 'admin') return true;
             Swal.fire({

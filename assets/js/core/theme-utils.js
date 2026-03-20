@@ -1,3 +1,6 @@
+// Tema visual: alternancia claro/oscuro y persistencia de preferencia.
+// Funcion: initDarkMode
+// Que hace: Gestiona la logica de initDarkMode.
 function initDarkMode(options = {}) {
     const storageKey = options.storageKey || 'darkMode';
     const respectSystem = options.respectSystem !== false;
@@ -27,12 +30,16 @@ function initDarkMode(options = {}) {
     }
 }
 
+// Funcion: toggleDarkMode
+// Que hace: Gestiona la logica de toggleDarkMode.
 function toggleDarkMode(storageKey = 'darkMode') {
     const html = document.documentElement;
     const nextIsDarkMode = !html.classList.contains('dark-mode');
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const hasActiveToastTimer = !!document.querySelector('.swal2-popup.swal2-toast .swal2-timer-progress-bar');
 
+// Funcion: applyTheme
+// Que hace: Gestiona la logica de applyTheme.
     const applyTheme = () => {
         html.classList.toggle('dark-mode', nextIsDarkMode);
         localStorage.setItem(storageKey, nextIsDarkMode ? '1' : '0');
@@ -45,6 +52,8 @@ function toggleDarkMode(storageKey = 'darkMode') {
 
     html.classList.add('theme-transitioning');
 
+// Funcion: cleanup
+// Que hace: Gestiona la logica de cleanup.
     const cleanup = () => {
         setTimeout(() => {
             html.classList.remove('theme-transitioning');

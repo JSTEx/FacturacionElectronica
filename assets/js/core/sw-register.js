@@ -1,3 +1,4 @@
+// Registro del Service Worker y control basico de su activacion.
 (function () {
     if (!('serviceWorker' in navigator)) return;
 

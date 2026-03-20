@@ -1,3 +1,4 @@
+// Gestion de sesion local: usuario actual, persistencia y cierre.
 async function confirmLogout(options = {}) {
     const redirectUrl = options.redirectUrl || 'login.html';
     const confirmTitle = options.confirmTitle || 'Cerrar sesión';
@@ -10,6 +11,8 @@ async function confirmLogout(options = {}) {
     const cancelButtonColor = options.cancelButtonColor || '#d33';
     const successDelay = Number(options.successDelay) || 600;
 
+// Funcion: runLogout
+// Que hace: Gestiona la logica de runLogout.
     const runLogout = async () => {
         const darkModeSetting = localStorage.getItem('darkMode');
         await window.firebaseAuth.signOut();

@@ -1,4 +1,7 @@
+// Seguridad UI: bloquea inspeccion y atajos de desarrollo en el cliente.
 (function () {
+// Funcion: blockEvent
+// Que hace: Gestiona la logica de blockEvent.
     function blockEvent(event) {
         event.preventDefault();
         event.stopPropagation();

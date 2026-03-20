@@ -1,3 +1,6 @@
+// Notificaciones toast: mensajes de exito, error e informacion.
+// Funcion: showToast
+// Que hace: Gestiona la logica de showToast.
 function showToast(title, icon = 'success', timer = 1600, position = 'top-end', options = {}) {
     if (!window.Swal) return;
     const iconName = String(icon || '').toLowerCase();

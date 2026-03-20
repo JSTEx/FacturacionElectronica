@@ -1,4 +1,5 @@
-﻿        window.toastTheme = {
+// Funciones compartidas y respaldo/importacion de datos de facturas.
+        window.toastTheme = {
             background: '#ecfdf5',
             color: '#065f46',
             iconColor: '#16a34a'
@@ -8,6 +9,8 @@
         const BACKUP_LAST_EXPORT_KEY = 'lastBackupExportAt';
         const BACKUP_REMINDER_INTERVAL_MS = 1000 * 60 * 60 * 24;
 
+// Funcion: normalizeInvoices
+// Que hace: Gestiona la logica de normalizeInvoices.
         function normalizeInvoices(rawInvoices) {
             const list = Array.isArray(rawInvoices)
                 ? rawInvoices.filter(Boolean)
@@ -18,6 +21,8 @@
                 .filter(Boolean);
         }
 
+// Funcion: normalizeInvoiceRecord
+// Que hace: Gestiona la logica de normalizeInvoiceRecord.
         function normalizeInvoiceRecord(record) {
             if (!record || typeof record !== 'object') return null;
             const parsedId = Number(record.id);
@@ -65,6 +70,8 @@
             };
         }
 
+// Funcion: toInvoicesMap
+// Que hace: Gestiona la logica de toInvoicesMap.
         function toInvoicesMap(invoiceList) {
             const map = {};
             normalizeInvoices(invoiceList).forEach((invoice) => {
@@ -73,6 +80,8 @@
             return map;
         }
 
+// Funcion: createAuditEntry
+// Que hace: Gestiona la logica de createAuditEntry.
         function createAuditEntry(action, invoiceRef = null) {
             const nowIso = new Date().toISOString();
             return {
@@ -86,6 +95,8 @@
             };
         }
 
+// Funcion: appendChangeLog
+// Que hace: Gestiona la logica de appendChangeLog.
         function appendChangeLog(existingLog, entry) {
             const safeLog = Array.isArray(existingLog) ? [...existingLog] : [];
             safeLog.push(entry);
@@ -97,6 +108,8 @@
             await setFirebaseData(`adminAudit/${key}`, entry);
         }
 
+// Funcion: getDateDiffFromToday
+// Que hace: Gestiona la logica de getDateDiffFromToday.
         function getDateDiffFromToday(isoDate) {
             const raw = String(isoDate || '').trim();
             if (!raw) return null;
@@ -109,6 +122,8 @@
             return Math.round((due.getTime() - today.getTime()) / oneDay);
         }
 
+// Funcion: updateOperationalAlerts
+// Que hace: Gestiona la logica de updateOperationalAlerts.
         function updateOperationalAlerts(invoiceList) {
             const container = document.getElementById('operationalAlerts');
             if (!container) return;
@@ -156,6 +171,8 @@
             container.classList.toggle('hidden', !hasAlerts);
         }
 
+// Funcion: maybeNotifyBackupReminder
+// Que hace: Gestiona la logica de maybeNotifyBackupReminder.
         function maybeNotifyBackupReminder(force = false) {
             if (!(currentUser && currentUser.role === 'admin')) return;
 
@@ -170,17 +187,23 @@
             }
         }
 
+// Funcion: getLastBackupExportLabel
+// Que hace: Gestiona la logica de getLastBackupExportLabel.
         function getLastBackupExportLabel() {
             const raw = localStorage.getItem(BACKUP_LAST_EXPORT_KEY);
             if (!raw) return 'Aún no has exportado una copia de seguridad.';
             return `Último respaldo exportado: ${formatDateTimeSV(raw)}`;
         }
 
+// Funcion: uint8ArrayToBase64
+// Que hace: Gestiona la logica de uint8ArrayToBase64.
         function uint8ArrayToBase64(bytes) {
             const binary = Array.from(bytes).map(byte => String.fromCharCode(byte)).join('');
             return btoa(binary);
         }
 
+// Funcion: base64ToUint8Array
+// Que hace: Gestiona la logica de base64ToUint8Array.
         function base64ToUint8Array(base64) {
             const binary = atob(base64);
             return new Uint8Array(binary.split('').map(char => char.charCodeAt(0)));

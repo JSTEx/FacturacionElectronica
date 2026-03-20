@@ -1,4 +1,7 @@
+// Service Worker: cachea recursos estaticos y provee fallback offline.
 const CACHE_VERSION = 'facturacion-cache-v2';
+
+// Lista base de recursos que se precargan durante la instalacion.
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -27,6 +30,7 @@ const STATIC_ASSETS = [
     './assets/js/anti-inspection.js'
 ];
 
+// Instalacion: precache de assets criticos y activacion inmediata del nuevo SW.
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_VERSION).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => Promise.resolve())
@@ -34,6 +38,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
+// Activacion: elimina caches viejos y toma control de las pestañas abiertas.
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => Promise.all(keys
@@ -44,6 +49,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
+// Fetch: estrategias de red/cache segun tipo de peticion.
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
@@ -52,6 +58,7 @@ self.addEventListener('fetch', (event) => {
 
     const isNavigation = event.request.mode === 'navigate';
 
+    // Navegacion (HTML): network-first con fallback a cache e index offline.
     if (isNavigation) {
         event.respondWith(
             fetch(event.request)
@@ -65,6 +72,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Assets (CSS/JS/etc): network-first con fallback al recurso cacheado.
     event.respondWith(
         fetch(event.request)
             .then((response) => {

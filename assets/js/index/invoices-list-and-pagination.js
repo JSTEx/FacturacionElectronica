@@ -1,4 +1,7 @@
-﻿        function renderInvoiceSkeletonList(count = 6) {
+// Render de listado de facturas, filtros visuales y paginacion.
+// Funcion: renderInvoiceSkeletonList
+// Que hace: Gestiona la logica de renderInvoiceSkeletonList.
+        function renderInvoiceSkeletonList(count = 6) {
             const listContainer = document.getElementById('invoiceList');
             const emptyState = document.getElementById('emptyState');
             const paginationContainer = document.getElementById('paginationContainer');
@@ -15,6 +18,8 @@
                 : Array.from({ length: count }).map(() => '<div class="invoice-skeleton-card"><div class="skeleton-line"></div></div>').join('');
         }
 
+// Funcion: updateInvoiceList
+// Que hace: Gestiona la logica de updateInvoiceList.
         function updateInvoiceList() {
             const listContainer = document.getElementById('invoiceList');
             const emptyState = document.getElementById('emptyState');
@@ -79,6 +84,8 @@
             animateOverdueNotificationIcons();
         }
 
+// Funcion: renderInvoiceCard
+// Que hace: Gestiona la logica de renderInvoiceCard.
         function renderInvoiceCard(inv, canDelete, withTitle = false) {
             if (!canViewInvoice(inv)) return '';
             const statusClass = getStatusClass(inv.status);
@@ -156,6 +163,8 @@
             `;
         }
 
+// Funcion: renderPaginationButtons
+// Que hace: Gestiona la logica de renderPaginationButtons.
         function renderPaginationButtons(totalPages) {
             const pageButtonsContainer = document.getElementById('pageButtons');
             pageButtonsContainer.innerHTML = '';
@@ -177,11 +186,15 @@
             }
         }
 
+// Funcion: goToPage
+// Que hace: Gestiona la logica de goToPage.
         function goToPage(page) {
             currentPage = page;
             updateInvoiceList();
         }
 
+// Funcion: nextPage
+// Que hace: Gestiona la logica de nextPage.
         function nextPage() {
             const listContainer = document.getElementById('invoiceList');
             if (!listContainer.classList.contains('hidden')) {
@@ -195,10 +208,11 @@
             }
         }
 
+// Funcion: previousPage
+// Que hace: Gestiona la logica de previousPage.
         function previousPage() {
             if (currentPage > 1) {
                 currentPage--;
                 updateInvoiceList();
             }
         }
-

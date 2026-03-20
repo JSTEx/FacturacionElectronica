@@ -1,3 +1,6 @@
+// Reglas y conversiones de estados de factura para UI y negocio.
+// Funcion: formatDate
+// Que hace: Gestiona la logica de formatDate.
 function formatDate(dateString) {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Fecha inválida';
@@ -11,6 +14,8 @@ function formatDate(dateString) {
     return `Vence en ${diffDays} días`;
 }
 
+// Funcion: getStatusClass
+// Que hace: Gestiona la logica de getStatusClass.
 function getStatusClass(status) {
     const normalized = String(status || '').toLowerCase();
     if (normalized === 'dispatch' || normalized === 'despacho') return 'status-dispatch';
@@ -21,6 +26,8 @@ function getStatusClass(status) {
     return 'status-pending';
 }
 
+// Funcion: getStatusText
+// Que hace: Gestiona la logica de getStatusText.
 function getStatusText(status) {
     const statusMap = {
         'dispatch': 'Despacho',
@@ -42,6 +49,8 @@ function getStatusText(status) {
     return statusMap[String(status || '').toLowerCase()] || status;
 }
 
+// Funcion: getStatusPdfChipData
+// Que hace: Gestiona la logica de getStatusPdfChipData.
 function getStatusPdfChipData(status) {
     const normalized = String(status || '').toLowerCase();
     if (normalized === 'dispatch' || normalized === 'despacho') {
