@@ -3162,10 +3162,19 @@ body.page-index .hamburger-btn {
         overflow: visible;
     }
 
+    body.page-index nav.app-nav.menu-open {
+        flex-wrap: wrap;
+    }
+
     /* Div con Nueva Factura: empujado a la derecha */
     body.page-index nav.app-nav > div.shrink-0 {
         margin-left: auto;
         min-width: 0;
+        order: 2;
+    }
+
+    body.page-index .hamburger-btn {
+        order: 1;
     }
 
     /* Nueva Factura: mantener en la misma línea sin romper layout */
@@ -3183,10 +3192,10 @@ body.page-index .hamburger-btn {
     /* Nav colapsable: oculto por defecto, dropdown cuando .is-open */
     body.page-index #navCollapsible {
         display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
+        position: static;
+        width: 100%;
+        order: 3;
+        margin-top: 8px;
         flex-direction: column;
         align-items: stretch;
         gap: 6px;
