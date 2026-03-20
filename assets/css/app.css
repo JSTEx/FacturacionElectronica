@@ -3159,7 +3159,7 @@ body.page-index .hamburger-btn {
         flex-wrap: nowrap;
         align-items: center;
         gap: 0.5rem;
-        overflow: hidden;
+        overflow: visible;
     }
 
     /* Div con Nueva Factura: empujado a la derecha */
