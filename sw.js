@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'facturacion-cache-v1';
+const CACHE_VERSION = 'facturacion-cache-v2';
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -66,17 +66,13 @@ self.addEventListener('fetch', (event) => {
     }
 
     event.respondWith(
-        caches.match(event.request).then((cached) => {
-            const fetchPromise = fetch(event.request)
-                .then((response) => {
-                    if (!response || response.status !== 200) return response;
-                    const clone = response.clone();
-                    caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
-                    return response;
-                })
-                .catch(() => cached);
-
-            return cached || fetchPromise;
-        })
+        fetch(event.request)
+            .then((response) => {
+                if (!response || response.status !== 200) return response;
+                const clone = response.clone();
+                caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
+                return response;
+            })
+            .catch(() => caches.match(event.request))
     );
 });
