@@ -913,11 +913,15 @@
                     };
                     try {
                         await saveInvoiceRecord(updatedInvoices[invoiceIndex]);
-                        await saveAdminAuditRecord(updateAudit);
                         invoices = updatedInvoices;
                         resetForm();
                         updateInvoiceList();
                         showToast(`Factura #${document.getElementById('numero').value} actualizada`, 'success', 1800, 'top-end', { toastType: 'success' });
+                        
+                        // Guardar auditoría sin bloquear
+                        saveAdminAuditRecord(updateAudit).catch(err => {
+                            console.error('Error en auditoría (no crítico):', err);
+                        });
                     } catch (error) {
                         console.error('Error guardando factura:', error);
                         Swal.fire({
@@ -956,11 +960,15 @@
 
                 try {
                     await saveInvoiceRecord(newInvoice);
-                    await saveAdminAuditRecord({ ...createAudit, invoiceId: newInvoice.id, invoiceNumber: newInvoice.number, invoiceStatus: newInvoice.status });
                     invoices = updatedInvoices;
                     resetForm();
                     updateInvoiceList();
                     showToast(`Factura #${newInvoice.number} creada`, 'success', 1800, 'top-end', { toastType: 'success' });
+                    
+                    // Guardar auditoría sin bloquear
+                    saveAdminAuditRecord({ ...createAudit, invoiceId: newInvoice.id, invoiceNumber: newInvoice.number, invoiceStatus: newInvoice.status }).catch(err => {
+                        console.error('Error en auditoría (no crítico):', err);
+                    });
                 } catch (error) {
                     console.error('Error creando factura:', error);
                     Swal.fire({
