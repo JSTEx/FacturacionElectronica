@@ -3,13 +3,13 @@
     'use strict';
 
     const CONFIG = {
-        enableDevToolsDetection: true,      // Solo detecta, no bloquea
-        enableRightClickBlock: false,       // Bloquea clic derecho - puede causar problemas
-        enableTextSelectionBlock: false,    // Bloquea selección - causaba el problema de resaltado
-        enableDragBlock: false,             // Bloquea arrastrar - puede interferir con la UI
-        enableIframeProtection: true,       // Protege contra iframes - seguro y no intrusivo
-        enableKeyboardShortcutsBlock: false,// Bloquea F12/DevTools - puede interferir
-        enableConsoleWarning: true,         // Solo muestra warnings en consola - no intrusivo
+        enableDevToolsDetection: true,
+        enableRightClickBlock: true,
+        enableTextSelectionBlock: true,
+        enableDragBlock: true,
+        enableIframeProtection: true,
+        enableKeyboardShortcutsBlock: true,
+        enableConsoleWarning: true,
         allowedOrigins: ['self'],
         checkInterval: 1500,
         devToolsThreshold: 160
