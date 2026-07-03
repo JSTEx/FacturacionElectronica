@@ -35,16 +35,6 @@
     function blockTextSelection(e) {
         if (!CONFIG.enableTextSelectionBlock) return;
         if (e.ctrlKey || e.metaKey) return;
-        
-        // Permitir selección en campos de formulario
-        const target = e.target;
-        const isFormField = target.tagName === 'INPUT' || 
-                           target.tagName === 'TEXTAREA' || 
-                           target.tagName === 'SELECT' ||
-                           target.closest('input, textarea, select');
-        
-        if (isFormField) return;
-        
         e.preventDefault();
     }
 
