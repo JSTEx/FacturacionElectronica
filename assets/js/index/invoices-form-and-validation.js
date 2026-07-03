@@ -830,10 +830,10 @@
                 return;
             }
 
-            await saveInvoice();
+            await saveInvoice(fechaInput);
         }
 
-        async function saveInvoice() {
+        async function saveInvoice(fechaInput) {
             if (!ensureCanCreateInvoices()) return;
             const total = parseFloat(document.getElementById('totalAmount').textContent);
             const payment = getPaymentSummary(total);
